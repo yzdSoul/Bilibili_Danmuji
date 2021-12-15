@@ -66,7 +66,7 @@
                                     <input class="form-control connect-docket"
                                            placeholder="要连接的端口地址" data-bs-toggle="tooltip"
                                            data-bs-placement="top" data-bs-html="true"
-                                           value="ws://localhost:23333/danmu/sub"
+                                           th:value="'ws://'+${USER_HOST}+':23333/danmu/sub'"
                                            title="连接网页显示弹幕服务器：通常本地为127.0.0.1或localhost<br/>远程服务器请以远程服务器ip替换">
 
                                 </div>

@@ -51,6 +51,8 @@ public class PublicDataConf {
 	public static String USERCOOKIE = null;
 	//user信息
 	public static User USER = null;
+	//user host
+	public static String USER_HOST = null;
 	//cookie
 	public static UserCookie COOKIE = null;
 	//user弹幕长度

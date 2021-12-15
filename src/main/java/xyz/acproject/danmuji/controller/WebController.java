@@ -28,6 +28,7 @@ import xyz.acproject.danmuji.service.ClientService;
 import xyz.acproject.danmuji.service.SetService;
 import xyz.acproject.danmuji.tools.CurrencyTools;
 import xyz.acproject.danmuji.utils.FastJsonUtils;
+import xyz.acproject.danmuji.utils.HostIPTest;
 import xyz.acproject.danmuji.utils.QrcodeUtils;
 import xyz.acproject.danmuji.utils.SchedulingRunnableUtil;
 
@@ -72,6 +73,7 @@ public class WebController {
         model.addAttribute("MANAGER", PublicDataConf.USERMANAGER != null ? PublicDataConf.USERMANAGER.isIs_manager() : false);
         if (PublicDataConf.USER != null) {
             model.addAttribute("USER", PublicDataConf.USER);
+            model.addAttribute("USER_HOST", PublicDataConf.USER_HOST = HostIPTest.getHostIp());
         }
 
         return "index";
