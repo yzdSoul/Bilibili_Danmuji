@@ -24,6 +24,8 @@ public class SmallHeartThread extends Thread {
 	private XData xData;
 	@Override
 	public void run() {
+		//废除小心心线程了
+		this.FLAG = true;
 		int num=0;
 		long startETime = 0;
 		long endETime = 0;
@@ -42,7 +44,7 @@ public class SmallHeartThread extends Thread {
 			}
 			startETime = System.currentTimeMillis();
 			if(num==0) {
-				roomInfo = HttpRoomData.httpGetRoomInfo();
+				roomInfo = HttpRoomData.httpGetRoomInfo().getRoomInfo();
 				try {
 					setxData(HttpHeartBeatData.httpPostE(roomInfo));	
 				} catch (Exception e) {

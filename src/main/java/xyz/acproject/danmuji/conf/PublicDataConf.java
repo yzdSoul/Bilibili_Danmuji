@@ -1,9 +1,12 @@
 package xyz.acproject.danmuji.conf;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import xyz.acproject.danmuji.client.WebSocketProxy;
 import xyz.acproject.danmuji.entity.auto_reply.AutoReply;
 import xyz.acproject.danmuji.entity.danmu_data.Gift;
 import xyz.acproject.danmuji.entity.danmu_data.Interact;
+import xyz.acproject.danmuji.entity.room_data.MedalInfoAnchor;
 import xyz.acproject.danmuji.entity.user_data.AutoSendGift;
 import xyz.acproject.danmuji.entity.user_data.User;
 import xyz.acproject.danmuji.entity.user_data.UserCookie;
@@ -43,8 +46,14 @@ public class PublicDataConf {
 	public static Long FANSNUM =null;
 	//主播名称
 	public static String ANCHOR_NAME = null;
+	//主播勋章信息
+	public static MedalInfoAnchor MEDALINFOANCHOR = null;
 	//房间人气
 	public static Long ROOM_POPULARITY =1L;
+	//房间观看人数（历史）
+	public static Long ROOM_WATCHER = 0L;
+	//点赞数量
+	public static Long ROOM_LIKE = 0L;
 	//直播状态 0不直播 1直播 2轮播
 	public static Short lIVE_STATUS = 0;
 	//cookie String串
@@ -65,6 +74,7 @@ public class PublicDataConf {
 	public static Boolean ISSHIELDWELCOME = false;
 	//设置
 	public static CenterSetConf centerSetConf;
+
 	
 	
 	//心跳包 16进制
@@ -141,8 +151,10 @@ public class PublicDataConf {
 	public static Long ROOMID_SAFE = null;
 	public static String SMALLHEART_ADRESS = null;
 	public static boolean is_sign= false;
-	public static String EDITION ="2.4.8";
-	public static String NEW_EDITION ="2.4.8";
+
+	public static String EDITION ="2.6.41";
+
+	public static String NEW_EDITION ="2.6.41";
 	public static String ANNOUNCE = null;
 	public static boolean INIT_CHECK_EDITION = false;
 	public static boolean INIT_CHECK_ANNOUNCE = false;
@@ -154,4 +166,61 @@ public class PublicDataConf {
 //
 	//可以赠送礼物集合 要初始化
 	public static Map<Integer,AutoSendGift> autoSendGiftMap = null;
+
+
+
+	//测试模式
+	public static boolean TEST_MODE = false;
+
+
+
+	//方法区
+
+	public static void init_user(){
+		PublicDataConf.COOKIE = null;
+		PublicDataConf.USER = null;
+		PublicDataConf.USERCOOKIE = null;
+		PublicDataConf.USERBARRAGEMESSAGE = null;
+	}
+
+	public static void init_send(){
+		PublicDataConf.replys.clear();
+		PublicDataConf.thankGiftConcurrentHashMap.clear();
+		PublicDataConf.barrageString.clear();
+		PublicDataConf.interacts.clear();
+		PublicDataConf.interactWelcome.clear();
+	}
+
+	public static void init_all(){
+		PublicDataConf.replys.clear();
+		PublicDataConf.resultStrs.clear();
+		PublicDataConf.thankGiftConcurrentHashMap.clear();
+		PublicDataConf.barrageString.clear();
+		PublicDataConf.logString.clear();
+		PublicDataConf.interacts.clear();
+		PublicDataConf.interactWelcome.clear();
+		PublicDataConf.SHIELDGIFTNAME = null;
+		PublicDataConf.ISSHIELDFOLLOW = false;
+		PublicDataConf.ISSHIELDWELCOME = false;
+	}
+
+	public static void init_connect(){
+		PublicDataConf.SHIELDGIFTNAME = null;
+		PublicDataConf.replys.clear();
+		PublicDataConf.resultStrs.clear();
+		PublicDataConf.thankGiftConcurrentHashMap.clear();
+		PublicDataConf.barrageString.clear();
+		PublicDataConf.interacts.clear();
+		PublicDataConf.logString.clear();
+		PublicDataConf.interactWelcome.clear();
+		PublicDataConf.ISSHIELDWELCOME=false;
+		PublicDataConf.ISSHIELDFOLLOW=false;
+		PublicDataConf.ROOMID = null;
+		PublicDataConf.ANCHOR_NAME = null;
+		PublicDataConf.AUID = null;
+		PublicDataConf.FANSNUM = null;
+		PublicDataConf.SHORTROOMID = null;
+		PublicDataConf.lIVE_STATUS = 0;
+		PublicDataConf.ROOM_POPULARITY = 1L;
+	}
 }

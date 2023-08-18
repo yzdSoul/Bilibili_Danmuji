@@ -1,9 +1,13 @@
 package xyz.acproject.danmuji.thread;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import xyz.acproject.danmuji.conf.PublicDataConf;
 import xyz.acproject.danmuji.enums.AdvertStatus;
+
+import java.math.BigDecimal;
 
 /**
  * @ClassName AdvertThread
@@ -13,11 +17,13 @@ import xyz.acproject.danmuji.enums.AdvertStatus;
  *
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
+@Getter
+@Setter
 public class AdvertThread extends Thread {
 //	@SuppressWarnings("unused")
 //	private Logger LOGGER = LogManager.getLogger(AdvertThread.class);
 	public volatile boolean FLAG = false;
-	private Short time;
+	private double time =0;
 	private String advertBarrage;
 	private AdvertStatus advertStatus;
 
@@ -33,6 +39,7 @@ public class AdvertThread extends Thread {
 			if(PublicDataConf.webSocketProxy!=null&&!PublicDataConf.webSocketProxy.isOpen()) {
 				return;
 			}
+			long delay_time = new BigDecimal(getTime()).multiply(new BigDecimal("1000")).longValue();
 			if (StringUtils.indexOf(getAdvertBarrage(), "\n") != -1) {
 				strings = StringUtils.split(getAdvertBarrage(), "\n");
 
@@ -40,10 +47,10 @@ public class AdvertThread extends Thread {
 					// 顺序发
 					for (String string : strings) {
 						try {
-							Thread.sleep(getTime() * 1000);
+							Thread.sleep(delay_time);
 						} catch (InterruptedException e) {
 							// TODO 自动生成的 catch 块
-//							LOGGER.debug("广告姬线程关闭:" + e);
+//							LOGGER.info("广告姬线程关闭:" + e);
 						}
 						if (PublicDataConf.sendBarrageThread != null&&!PublicDataConf.sendBarrageThread.FLAG) {
 						PublicDataConf.barrageString.add(string);
@@ -55,10 +62,10 @@ public class AdvertThread extends Thread {
 				} else {
 					// 随机发
 					try {
-						Thread.sleep(getTime() * 1000);
+						Thread.sleep(delay_time);
 					} catch (InterruptedException e) {
 						// TODO 自动生成的 catch 块
-//						LOGGER.debug("广告姬线程关闭:" + e);
+//						LOGGER.info("广告姬线程关闭:" + e);
 					}
 					int strLength = strings.length;
 					if (strLength > 1) {
@@ -82,10 +89,10 @@ public class AdvertThread extends Thread {
 
 			} else {
 				try {
-					Thread.sleep(getTime() * 1000);
+					Thread.sleep(delay_time);
 				} catch (InterruptedException e) {
 					// TODO 自动生成的 catch 块
-//					LOGGER.debug("广告姬线程关闭:" + e);
+//					LOGGER.info("广告姬线程关闭:" + e);
 				}
 				if (PublicDataConf.sendBarrageThread != null&&!PublicDataConf.sendBarrageThread.FLAG) {
 				PublicDataConf.barrageString.add(getAdvertBarrage());
@@ -99,34 +106,11 @@ public class AdvertThread extends Thread {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				// TODO 自动生成的 catch 块
-//				LOGGER.debug("广告姬线程关闭:" + e);
+//				LOGGER.info("广告姬线程关闭:" + e);
 			}
 
 		}
 	}
 
-	public Short getTime() {
-		return time;
-	}
-
-	public void setTime(Short time) {
-		this.time = time;
-	}
-
-	public String getAdvertBarrage() {
-		return advertBarrage;
-	}
-
-	public void setAdvertBarrage(String advertBarrage) {
-		this.advertBarrage = advertBarrage;
-	}
-
-	public AdvertStatus getAdvertStatus() {
-		return advertStatus;
-	}
-
-	public void setAdvertStatus(AdvertStatus advertStatus) {
-		this.advertStatus = advertStatus;
-	}
 
 }

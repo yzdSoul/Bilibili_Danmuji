@@ -1,21 +1,22 @@
-package xyz.acproject.danmuji.config;
+package xyz.acproject.danmuji.service;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import xyz.acproject.danmuji.conf.CenterSetConf;
 import xyz.acproject.danmuji.conf.PublicDataConf;
 import xyz.acproject.danmuji.conf.set.*;
 import xyz.acproject.danmuji.entity.user_data.UserCookie;
-import xyz.acproject.danmuji.file.ProFileTools;
+import xyz.acproject.danmuji.tools.file.ProFileTools;
 import xyz.acproject.danmuji.http.HttpUserData;
 import xyz.acproject.danmuji.service.impl.SetServiceImpl;
 import xyz.acproject.danmuji.tools.BASE64Encoder;
 
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Jane
@@ -24,25 +25,25 @@ import java.util.Hashtable;
  * @date 2021/6/15 16:43
  * @Copyright:2021
  */
-@Configuration
-public class DanmujiInitConfig {
-    private Logger LOGGER = LogManager.getLogger(DanmujiInitConfig.class);
+@Service
+public class DanmujiInitService {
+    private Logger LOGGER = LogManager.getLogger(DanmujiInitService.class);
     private final String cookies = "ySZL4SBB";
     private SetServiceImpl checkService;
 
     public void init(){
-        Hashtable<String, String> hashtable = new Hashtable<String, String>();
+        Map<String, String> profileMap = new ConcurrentHashMap<>();
         String cookieString = null;
         BASE64Encoder base64Encoder = new BASE64Encoder();
         try {
-            hashtable.putAll(ProFileTools.read("DanmujiProfile"));
+            profileMap.putAll(ProFileTools.read("DanmujiProfile"));
         } catch (Exception e) {
             // TODO: handle exception
         }
         // 读取本地cookie
         try {
-            cookieString = !StringUtils.isEmpty(hashtable.get(cookies))
-                    ? new String(base64Encoder.decode(hashtable.get(cookies)))
+            cookieString = !StringUtils.isEmpty(profileMap.get(cookies))
+                    ? new String(base64Encoder.decode(profileMap.get(cookies)))
                     : null;
         } catch (Exception e) {
             // TODO 自动生成的 catch 块
@@ -59,13 +60,13 @@ public class DanmujiInitConfig {
             PublicDataConf.USERCOOKIE = null;
         } else {
             if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
-                hashtable.put(cookies, base64Encoder.encode(PublicDataConf.USERCOOKIE.getBytes()));
+                profileMap.put(cookies, base64Encoder.encode(PublicDataConf.USERCOOKIE.getBytes()));
             }
         }
         // 读取本地set
         try {
-            PublicDataConf.centerSetConf = !StringUtils.isEmpty(hashtable.get("set")) ? JSONObject
-                    .parseObject(new String(base64Encoder.decode(hashtable.get("set"))), CenterSetConf.class) : null;
+            PublicDataConf.centerSetConf = !StringUtils.isEmpty(profileMap.get("set")) ? JSONObject
+                    .parseObject(new String(base64Encoder.decode(profileMap.get("set"))), CenterSetConf.class) : null;
         } catch (Exception e) {
             // TODO: handle exception
             LOGGER.error("读取配置文件失败,尝试重新读取" + e);
@@ -74,7 +75,7 @@ public class DanmujiInitConfig {
         //初始化配置文件开始
         if (PublicDataConf.centerSetConf == null) {
             PublicDataConf.centerSetConf = new CenterSetConf(new ThankGiftSetConf(), new AdvertSetConf(),
-                    new ThankFollowSetConf(), new AutoReplySetConf(),new ClockInSetConf(),new ThankWelcomeSetConf(),new AutoSendGiftConf());
+                    new ThankFollowSetConf(), new AutoReplySetConf(),new ClockInSetConf(),new ThankWelcomeSetConf(),new AutoSendGiftConf(),new PrivacySetConf(),new BlackListSetConf());
         } else {
             if (PublicDataConf.centerSetConf.getRoomid() != null && PublicDataConf.centerSetConf.getRoomid() > 0)
                 PublicDataConf.ROOMID_SAFE = PublicDataConf.centerSetConf.getRoomid();
@@ -102,13 +103,19 @@ public class DanmujiInitConfig {
         if(PublicDataConf.centerSetConf.getAuto_gift()==null){
             PublicDataConf.centerSetConf.setAuto_gift(new AutoSendGiftConf());
         }
+        if(PublicDataConf.centerSetConf.getPrivacy()==null){
+            PublicDataConf.centerSetConf.setPrivacy(new PrivacySetConf());
+        }
+        if(PublicDataConf.centerSetConf.getBlack()==null){
+            PublicDataConf.centerSetConf.setBlack(new BlackListSetConf());
+        }
         //初始化配置文件结束
-        hashtable.put("set", base64Encoder.encode(PublicDataConf.centerSetConf.toJson().getBytes()));
-        ProFileTools.write(hashtable, "DanmujiProfile");
+        profileMap.put("set", base64Encoder.encode(PublicDataConf.centerSetConf.toJson().getBytes()));
+        ProFileTools.write(profileMap, "DanmujiProfile");
         try {
             PublicDataConf.centerSetConf = JSONObject
-                    .parseObject(new String(base64Encoder.decode(hashtable.get("set"))), CenterSetConf.class);
-            LOGGER.debug("读取配置文件成功");
+                    .parseObject(new String(base64Encoder.decode(profileMap.get("set"))), CenterSetConf.class);
+            LOGGER.info("读取配置文件成功");
         } catch (Exception e) {
             // TODO: handle exception
             LOGGER.error("读取配置文件失败" + e);
@@ -143,21 +150,21 @@ public class DanmujiInitConfig {
                         PublicDataConf.COOKIE.setSESSDATA(value);
                         controlNum++;
                     } else {
-//						LOGGER.debug("获取cookie失败，字段为" + key);
+//						LOGGER.info("获取cookie失败，字段为" + key);
                     }
                 }
             }
             if (controlNum >= 2) {
-                LOGGER.debug("用户cookie装载成功");
+                LOGGER.info("用户cookie装载成功");
                 controlNum = 0;
             } else {
-                LOGGER.debug("用户cookie装载失败");
+                LOGGER.info("用户cookie装载失败");
                 PublicDataConf.COOKIE = null;
             }
             checkService.holdSet(PublicDataConf.centerSetConf);
         }
         base64Encoder = null;
-        hashtable.clear();
+        profileMap.clear();
     }
 
     @Autowired

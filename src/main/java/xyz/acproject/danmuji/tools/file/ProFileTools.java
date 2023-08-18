@@ -1,13 +1,9 @@
-package xyz.acproject.danmuji.file;
+package xyz.acproject.danmuji.tools.file;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLDecoder;
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @ClassName ProFileTools
@@ -18,7 +14,7 @@ import java.util.Hashtable;
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
 public class ProFileTools {
-	public static Hashtable<String, String> read(String filename) {
+	public static Map<String, String> read(String filename) {
 		String path = System.getProperty("user.dir");
 		FileTools fileTools = new FileTools();
 		try {
@@ -28,11 +24,11 @@ public class ProFileTools {
 			e1.printStackTrace();
 		}
 		File file = new File(path);
-		file.setWritable(true, false);
+//		file.setWritable(true, false);
 		if (file.exists() == false)
 			file.mkdirs();
 		file = new File(path + "/" + filename);
-		file.setWritable(true, false);
+//		file.setWritable(true, false);
 		if (file.exists() == false)
 			try {
 				file.createNewFile();
@@ -40,7 +36,7 @@ public class ProFileTools {
 				// TODO 自动生成的 catch 块
 				e.printStackTrace();
 			}
-		Hashtable<String, String> hashtables = new Hashtable<String, String>();
+		Map<String, String> profileMap = new ConcurrentHashMap<>();
 		BufferedReader bufferedReader = null;
 		String dataString = null;
 		String[] strings = null;
@@ -50,7 +46,7 @@ public class ProFileTools {
 				strings = dataString.split(":@:");
 				if (strings != null) {
 					if (strings.length == 2) {
-						hashtables.put(strings[0], strings[1]);
+						profileMap.put(strings[0], strings[1]);
 					} else {
 						return null;
 					}
@@ -69,11 +65,11 @@ public class ProFileTools {
 				}
 			}
 		}
-		return hashtables;
+		return profileMap;
 
 	}
 
-	public static void write(Hashtable<String, String> hashtables, String filename) {
+	public static void write(Map<String, String> profileMap, String filename) {
 		String path = System.getProperty("user.dir");
 		FileTools fileTools = new FileTools();
 		try {
@@ -83,11 +79,11 @@ public class ProFileTools {
 			e1.printStackTrace();
 		}
 		File file = new File(path);
-		file.setWritable(true, false);
+//		file.setWritable(true, false);
 		if (file.exists() == false)
 			file.mkdirs();
 		file = new File(path + "/" + filename);
-		file.setWritable(true, false);
+//		file.setWritable(true, false);
 		final StringBuffer stringBuffer = new StringBuffer();
 		try {
 			file.createNewFile();
@@ -95,10 +91,12 @@ public class ProFileTools {
 			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		}
+		OutputStreamWriter os= null;
 		BufferedWriter bufferedWriter = null;
 		try {
-			bufferedWriter = new BufferedWriter(new FileWriter(file));
-			hashtables.forEach((k, v) -> {
+			os = new OutputStreamWriter(new FileOutputStream(file),"utf-8");
+			bufferedWriter = new BufferedWriter(os);
+			profileMap.forEach((k, v) -> {
 
 				stringBuffer.append(k);
 				stringBuffer.append(":@:");
@@ -106,11 +104,20 @@ public class ProFileTools {
 				stringBuffer.append("\r\n");
 			});
 			bufferedWriter.write(stringBuffer.toString());
+			os.flush();
 			bufferedWriter.flush();
 		} catch (IOException e) {
 			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		} finally {
+			if (os != null) {
+				try {
+					os.close();
+				} catch (IOException e) {
+					// TODO 自动生成的 catch 块
+					e.printStackTrace();
+				}
+			}
 			if (bufferedWriter != null) {
 				try {
 					bufferedWriter.close();

@@ -1,9 +1,13 @@
 package xyz.acproject.danmuji.thread;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import xyz.acproject.danmuji.conf.PublicDataConf;
 import xyz.acproject.danmuji.conf.set.ThankGiftRuleSet;
 import xyz.acproject.danmuji.entity.danmu_data.Gift;
+import xyz.acproject.danmuji.enums.ListGiftShieldStatus;
+import xyz.acproject.danmuji.enums.ListPeopleShieldStatus;
 import xyz.acproject.danmuji.enums.ShieldGift;
 import xyz.acproject.danmuji.enums.ThankGiftStatus;
 import xyz.acproject.danmuji.tools.ParseSetStatusTools;
@@ -23,6 +27,8 @@ import java.util.Vector;
  *
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
+@Getter
+@Setter
 public class ParseThankGiftThread extends Thread {
 //	@SuppressWarnings("unused")
 //	private static Logger LOGGER = LogManager.getLogger(ParseThankGiftThread.class);
@@ -34,6 +40,10 @@ public class ParseThankGiftThread extends Thread {
 	private Short num = 2;
 	private HashSet<ThankGiftRuleSet> thankGiftRuleSets;
 	private boolean is_num = true;
+
+	private ListGiftShieldStatus listGiftShieldStatus;
+
+	private ListPeopleShieldStatus listPeopleShieldStatus;
 
 	@Override
 	public void run() {
@@ -58,16 +68,21 @@ public class ParseThankGiftThread extends Thread {
 				}
 				long nowTime = System.currentTimeMillis();
 				if (nowTime - getTimestamp() < getDelaytime()) {
+
 				} else {
 					if (PublicDataConf.thankGiftConcurrentHashMap.size() > 0) {
 
+						//这里是自定义模式去除
 						for (Entry<String, Vector<Gift>> entry : PublicDataConf.thankGiftConcurrentHashMap.entrySet()) {
 							gifts = entry.getValue();
 							for (Iterator<Gift> iterator = gifts.iterator(); iterator.hasNext();) {
 								gift = iterator.next();
 								if (ParseSetStatusTools.getGiftShieldStatus(PublicDataConf.centerSetConf.getThank_gift()
 										.getShield_status()) == ShieldGift.CUSTOM_RULE) {
-									if (ShieldGiftTools.shieldGift(gift, ShieldGift.CUSTOM_RULE, null,
+									if (ShieldGiftTools.shieldGift(gift,
+											getListGiftShieldStatus(),
+											getListPeopleShieldStatus(),
+											ShieldGift.CUSTOM_RULE, null,
 											getThankGiftRuleSets()) == null) {
 										iterator.remove();
 									}
@@ -103,7 +118,7 @@ public class ParseThankGiftThread extends Thread {
 										}
 										thankGiftStr = StringUtils.replace(handleThankStr(getThankGiftString()),
 												"%uName%", entry.getKey());
-										if (isIs_num()) {
+										if (is_num()) {
 											stringBuilder.append(gifts.get(j).getNum()).append("个")
 													.append(gifts.get(j).getGiftName()).append(",");
 										} else {
@@ -173,7 +188,7 @@ public class ParseThankGiftThread extends Thread {
 											}
 											thankGiftStr = StringUtils.replace(handleThankStr(getThankGiftString()),
 													"%uNames%", entry.getKey());
-											if (isIs_num()) {
+											if (is_num()) {
 												stringBuilder.append(gifts.get(j).getNum()).append("个")
 														.append(gifts.get(j).getGiftName()).append(",");
 											} else {
@@ -219,7 +234,7 @@ public class ParseThankGiftThread extends Thread {
 			Map.Entry<String, Vector<Gift>> entryMap = iterator.next();
 			stringBuilderName.append(entryMap.getKey()).append(",");
 			for (Gift gift : entryMap.getValue()) {
-				if (isIs_num()) {
+				if (is_num()) {
 //				if(!stringBuilderGifts.toString().contains(gift.getGiftName())) {
 					stringBuilderGifts.append(gift.getNum()).append("个").append(gift.getGiftName()).append(",");
 //				}
@@ -255,60 +270,5 @@ public class ParseThankGiftThread extends Thread {
 		return thankStr;
 	}
 
-	public Long getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(Long timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public Long getDelaytime() {
-		return delaytime;
-	}
-
-	public void setDelaytime(Long delaytime) {
-		this.delaytime = delaytime;
-	}
-
-	public String getThankGiftString() {
-		return thankGiftString;
-	}
-
-	public void setThankGiftString(String thankGiftString) {
-		this.thankGiftString = thankGiftString;
-	}
-
-	public ThankGiftStatus getThankGiftStatus() {
-		return thankGiftStatus;
-	}
-
-	public void setThankGiftStatus(ThankGiftStatus thankGiftStatus) {
-		this.thankGiftStatus = thankGiftStatus;
-	}
-
-	public Short getNum() {
-		return num;
-	}
-
-	public void setNum(Short num) {
-		this.num = num;
-	}
-
-	public HashSet<ThankGiftRuleSet> getThankGiftRuleSets() {
-		return thankGiftRuleSets;
-	}
-
-	public void setThankGiftRuleSets(HashSet<ThankGiftRuleSet> thankGiftRuleSets) {
-		this.thankGiftRuleSets = thankGiftRuleSets;
-	}
-
-	public boolean isIs_num() {
-		return is_num;
-	}
-
-	public void setIs_num(boolean is_num) {
-		this.is_num = is_num;
-	}
 
 }

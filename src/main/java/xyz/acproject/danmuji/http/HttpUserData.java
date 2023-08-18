@@ -55,9 +55,9 @@ public class HttpUserData {
         jsonObject = JSONObject.parseObject(data);
         short code = jsonObject.getShort("code");
         if (code == 0) {
-            LOGGER.debug("已经登录:" + jsonObject.toString());
+            LOGGER.info("已经登录:" + jsonObject.toString());
         } else if (code == -101) {
-            LOGGER.debug("未登录:" + jsonObject.toString());
+            LOGGER.info("未登录:" + jsonObject.toString());
         } else {
             LOGGER.error("未知错误,原因未知" + jsonObject.toString());
         }
@@ -141,7 +141,7 @@ public class HttpUserData {
                     if (PublicDataConf.ROOMID != null) {
                         httpGetUserBarrageMsg();
                     }
-                    LOGGER.debug("扫码登录成功");
+                    LOGGER.info("扫码登录成功");
                 }
             }
         } catch (Exception e1) {
@@ -179,9 +179,9 @@ public class HttpUserData {
         if (jsonObject.getString("code").equals("REPONSE_OK")) {
             PublicDataConf.USER = new User();
             PublicDataConf.USER = JSONObject.parseObject(jsonObject.getString("data"), User.class);
-            LOGGER.debug("已经登录，获取信息成功");
+            LOGGER.info("已经登录，获取信息成功");
         } else if (jsonObject.getShort("code") == -500) {
-            LOGGER.debug("未登录，请登录:" + jsonObject.toString());
+            LOGGER.info("未登录，请登录:" + jsonObject.toString());
             PublicDataConf.USERCOOKIE = null;
             PublicDataConf.USER = null;
         } else {
@@ -220,18 +220,18 @@ public class HttpUserData {
         jsonObject = JSONObject.parseObject(data);
         short code = jsonObject.getShort("code");
         if (code == 0) {
-            LOGGER.debug("获取本房间自身管理信息成功");
+            LOGGER.info("获取本房间自身管理信息成功");
             if (PublicDataConf.ROOMID != null && PublicDataConf.ROOMID > 0) {
                 Boolean manager = jsonObject.getJSONObject("data").getJSONObject("badge").getBoolean("is_room_admin");
                 PublicDataConf.USERMANAGER = new UserManager();
-                PublicDataConf.USERMANAGER.setIs_manager(manager != null ? manager : false);
+                PublicDataConf.USERMANAGER.set_manager(manager != null ? manager : false);
                 PublicDataConf.USERMANAGER.setRoomid(PublicDataConf.ROOMID);
                 PublicDataConf.USERMANAGER.setShort_roomid(CurrencyTools.parseRoomId());
             }
         } else if (code == -101) {
-            LOGGER.debug("未登录，请登录:" + jsonObject.toString());
+            LOGGER.info("未登录，请登录:" + jsonObject.toString());
         } else if (code == -400) {
-            LOGGER.debug("房间号不存在或者未输入房间号:" + jsonObject.toString());
+            LOGGER.info("房间号不存在或者未输入房间号:" + jsonObject.toString());
         } else {
             LOGGER.error("未知错误,原因未知" + jsonObject.toString());
         }
@@ -241,6 +241,7 @@ public class HttpUserData {
      * 获取用户在目标房间所能发送弹幕的最大长度
      */
     public static void httpGetUserBarrageMsg() {
+        if(CurrencyTools.parseRoomId()==0)return;
         String data = null;
         JSONObject jsonObject = null;
         Map<String, String> headers = null;
@@ -266,18 +267,18 @@ public class HttpUserData {
         jsonObject = JSONObject.parseObject(data);
         short code = jsonObject.getShort("code");
         if (code == 0) {
-            LOGGER.debug("获取本房间可发送弹幕长度+是否是管理员 成功");
+            LOGGER.info("获取本房间可发送弹幕长度+是否是管理员 成功");
             PublicDataConf.USERBARRAGEMESSAGE = JSONObject
                     .parseObject((((JSONObject) jsonObject.get("data")).getString("property")), UserBarrageMsg.class);
             Boolean manager = jsonObject.getJSONObject("data").getJSONObject("badge").getBoolean("is_room_admin");
             PublicDataConf.USERMANAGER = new UserManager();
-            PublicDataConf.USERMANAGER.setIs_manager(manager != null ? manager : false);
+            PublicDataConf.USERMANAGER.set_manager(manager != null ? manager : false);
             PublicDataConf.USERMANAGER.setRoomid(PublicDataConf.ROOMID);
             PublicDataConf.USERMANAGER.setShort_roomid(CurrencyTools.parseRoomId());
         } else if (code == -101) {
-            LOGGER.debug("未登录，请登录:" + jsonObject.toString());
+            LOGGER.info("未登录，请登录:" + jsonObject.toString());
         } else if (code == -400) {
-            LOGGER.debug("房间号不存在或者未输入房间号:" + jsonObject.toString());
+            LOGGER.info("房间号不存在或者未输入房间号:" + jsonObject.toString());
         } else {
             LOGGER.error("未知错误,原因未知" + jsonObject.toString());
         }
@@ -312,14 +313,14 @@ public class HttpUserData {
         jsonObject = JSONObject.parseObject(data);
         short code = jsonObject.getShort("code");
         if (code == 0) {
-            LOGGER.debug("获取本房间可发送弹幕长度成功");
+            LOGGER.info("获取本房间可发送弹幕长度成功");
             UserBarrageMsg barrageMsg = JSONObject
                     .parseObject((((JSONObject) jsonObject.get("data")).getString("property")), UserBarrageMsg.class);
             return barrageMsg;
         } else if (code == -101) {
-            LOGGER.debug("未登录，请登录:" + jsonObject.toString());
+            LOGGER.info("未登录，请登录:" + jsonObject.toString());
         } else if (code == -400) {
-            LOGGER.debug("房间号不存在或者未输入房间号:" + jsonObject.toString());
+            LOGGER.info("房间号不存在或者未输入房间号:" + jsonObject.toString());
         } else {
             LOGGER.error("未知错误,原因未知" + jsonObject.toString());
         }
@@ -373,16 +374,16 @@ public class HttpUserData {
             code = jsonObject.getShort("code");
             if (code == 0) {
                 if (StringUtils.isEmpty(jsonObject.getString("message").trim())) {
-//				LOGGER.debug("发送弹幕成功");
+//				LOGGER.info("发送弹幕成功");
                 } else if (jsonObject.getString("message").equals("msg in 1s")
                         || jsonObject.getString("message").equals("msg repeat")) {
-                    LOGGER.debug("发送弹幕失败，尝试重新发送" + jsonObject.getString("message"));
+                    LOGGER.info("发送弹幕失败，尝试重新发送" + jsonObject.getString("message"));
                     PublicDataConf.barrageString.add(msg);
                     synchronized (PublicDataConf.sendBarrageThread) {
                         PublicDataConf.sendBarrageThread.notify();
                     }
                 } else {
-                    LOGGER.debug(jsonObject.toString());
+                    LOGGER.info(jsonObject.toString());
                     String message = jsonObject.getString("message");
                     if("f".equals(message)||"k".equals(message)) message="触发破站关键字，请检查发送弹幕是否含有破站屏蔽词或者非法词汇";
                     LOGGER.error("发送弹幕失败,原因:" + message);
@@ -451,12 +452,12 @@ public class HttpUserData {
             code = jsonObject.getShort("code");
             if (code == 0) {
                 if (StringUtils.isEmpty(jsonObject.getString("message").trim())) {
-//				LOGGER.debug("发送弹幕成功");
+//				LOGGER.info("发送弹幕成功");
                 } else if (jsonObject.getString("message").equals("msg in 1s")
                         || jsonObject.getString("message").equals("msg repeat")) {
-                    LOGGER.debug("发送弹幕失败，尝试重新发送" + jsonObject.getString("message"));
+                    LOGGER.info("发送弹幕失败，尝试重新发送" + jsonObject.getString("message"));
                 } else {
-                    LOGGER.debug(jsonObject.toString());
+                    LOGGER.info(jsonObject.toString());
                     LOGGER.error("发送弹幕失败,原因:" + jsonObject.getString("message"));
                     code = -402;
                 }
@@ -592,11 +593,11 @@ public class HttpUserData {
         code = jsonObject.getShort("code");
         if (code == 0) {
             // 发送私聊成功
-            LOGGER.debug("赠送礼物成功,赠送房间:{},赠送主播:{},送出礼物:{},个数:{},亲密度:{}",roomid,ruid,userBag.getGift_name(),userBag.getGift_num(),userBag.getFeed()*userBag.getGift_num());
+            LOGGER.info("赠送礼物成功,赠送房间:{},赠送主播id:{},送出礼物:{},个数:{},亲密度:{}",roomid,ruid,userBag.getGift_name(),userBag.getGift_num(),userBag.getFeed()*userBag.getGift_num());
         } else {
             LOGGER.error("赠送礼物失败,未知错误,原因未知" + jsonObject.toString());
         }
-       // LOGGER.debug("赠送礼物成功,赠送房间:{},赠送主播:{},送出礼物:{},个数:{},亲密度:{}",roomid,ruid,userBag.getGift_name(),userBag.getGift_num(),userBag.getFeed()*userBag.getGift_num());
+//        LOGGER.info("赠送礼物成功,赠送房间:{},赠送主播:{},送出礼物:{},个数:{},亲密度:{}",roomid,ruid,userBag.getGift_name(),userBag.getGift_num(),userBag.getFeed()*userBag.getGift_num());
         return 1;
     }
 
@@ -737,9 +738,9 @@ public class HttpUserData {
         jsonObject = JSONObject.parseObject(data);
         int code = jsonObject.getShort("code");
         if (code == 0) {
-            LOGGER.debug(((JSONObject) jsonObject.get("data")).getString("specialText"));
+            LOGGER.info(((JSONObject) jsonObject.get("data")).getString("specialText"));
         } else if (code == 1011040) {
-            LOGGER.debug(jsonObject.get("message"));
+            LOGGER.info(jsonObject.get("message"));
         } else {
             LOGGER.error("签到失败，原因：" + jsonObject.toString());
         }
@@ -764,18 +765,18 @@ public class HttpUserData {
             int nowPage = 1;
             while (true) {
                 params.put("page", String.valueOf(nowPage));
-                params.put("pageSize", "10");
+                params.put("page_size", "10");
                 data = OkHttp3Utils.getHttp3Utils()
-                        .httpGet("http://api.live.bilibili.com/fans_medal/v5/live_fans_medal/iApiMedal", headers, params)
+                        .httpGet("https://api.live.bilibili.com/xlive/app-ucenter/v1/user/GetMyMedals", headers, params)
                         .body().string();
                 if (data == null)
                     return null;
                 jsonObject = JSONObject.parseObject(data);
                 code = jsonObject.getShort("code");
                 if (code == 0) {
-                    int totalPage = jsonObject.getJSONObject("data").getJSONObject("pageinfo").getInteger("totalpages");
+                    int totalPage = jsonObject.getJSONObject("data").getJSONObject("page_info").getInteger("total_page");
                     if (totalPage != 0) {
-                        jsonArray = jsonObject.getJSONObject("data").getJSONArray("fansMedalList");
+                        jsonArray = jsonObject.getJSONObject("data").getJSONArray("items");
                         if (jsonArray != null) {
                             List<UserMedal> userMedalList = jsonArray.toJavaList(UserMedal.class);
                             userMedals.addAll(userMedalList);

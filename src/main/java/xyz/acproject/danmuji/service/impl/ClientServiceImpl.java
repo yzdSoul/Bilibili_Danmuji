@@ -1,7 +1,6 @@
 package xyz.acproject.danmuji.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.acproject.danmuji.client.WebSocketProxy;
@@ -11,19 +10,21 @@ import xyz.acproject.danmuji.entity.BarrageHeadHandle;
 import xyz.acproject.danmuji.entity.FristSecurityData;
 import xyz.acproject.danmuji.entity.room_data.CheckTx;
 import xyz.acproject.danmuji.entity.room_data.Room;
+import xyz.acproject.danmuji.entity.room_data.RoomInfoAnchor;
 import xyz.acproject.danmuji.entity.room_data.RoomInit;
 import xyz.acproject.danmuji.entity.server_data.Conf;
-import xyz.acproject.danmuji.file.GuardFileTools;
+import xyz.acproject.danmuji.tools.file.GuardFileTools;
 import xyz.acproject.danmuji.http.HttpRoomData;
 import xyz.acproject.danmuji.http.HttpUserData;
 import xyz.acproject.danmuji.service.ClientService;
 import xyz.acproject.danmuji.service.SetService;
 import xyz.acproject.danmuji.tools.CurrencyTools;
-import xyz.acproject.danmuji.tools.HandleWebsocketPackage;
+import xyz.acproject.danmuji.ws.HandleWebsocketPackage;
 import xyz.acproject.danmuji.utils.ByteUtils;
+import xyz.acproject.danmuji.utils.HexUtils;
 
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author BanqiJane
@@ -59,6 +60,10 @@ public class ClientServiceImpl implements ClientService {
         if (conf == null) {
             return;
         }
+        //房间详细信息获取 目前仅处理勋章
+        RoomInfoAnchor roomInfoAnchor = HttpRoomData.httpGetRoomInfo();
+        PublicDataConf.MEDALINFOANCHOR = roomInfoAnchor.getMedalInfoAnchor();
+        //公共信息处理
         PublicDataConf.AUID = roomInit.getUid();
         PublicDataConf.FANSNUM = HttpRoomData.httpGetFollowersNum();
 
@@ -72,26 +77,28 @@ public class ClientServiceImpl implements ClientService {
             HttpUserData.httpGetUserBarrageMsg();
         }
         FristSecurityData fristSecurityData = null;
-        PublicDataConf.webSocketProxy = new WebSocketProxy(PublicDataConf.URL, room);
         if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
             fristSecurityData = new FristSecurityData(PublicDataConf.USER.getUid(), PublicDataConf.ROOMID,
                     conf.getToken());
         } else {
-            fristSecurityData = new FristSecurityData(PublicDataConf.ROOMID, conf.getToken());
+            //应付用户名称带星号问题
+            fristSecurityData = new FristSecurityData(PublicDataConf.AUID,PublicDataConf.ROOMID, conf.getToken());
         }
         byte[] byte_1 = HandleWebsocketPackage.BEhandle(BarrageHeadHandle.getBarrageHeadHandle(
-                fristSecurityData.toJson().toString().getBytes().length + PublicDataConf.packageHeadLength,
+                fristSecurityData.toJson().getBytes().length + PublicDataConf.packageHeadLength,
                 PublicDataConf.packageHeadLength, PublicDataConf.packageVersion, PublicDataConf.firstPackageType,
                 PublicDataConf.packageOther));
         byte[] byte_2 = fristSecurityData.toJson().getBytes();
         byte[] req = ByteUtils.byteMerger(byte_1, byte_2);
+        //开启websocket 和 发送验证包和心跳包
+        PublicDataConf.webSocketProxy = new WebSocketProxy(PublicDataConf.URL, room);
         PublicDataConf.webSocketProxy.send(req);
         PublicDataConf.webSocketProxy.send(HexUtils.fromHexString(PublicDataConf.heartByte));
         threadComponent.startHeartByteThread();
         setService.holdSet(PublicDataConf.centerSetConf);
         CheckTx checkTx = null;
         // 登录发现天选屏蔽礼物
-        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getThank_gift().isIs_tx_shield()) {
+        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getThank_gift().is_tx_shield()) {
             if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
                checkTx = HttpRoomData.httpGetCheckTX();
                 if (checkTx != null) {
@@ -104,7 +111,7 @@ public class ClientServiceImpl implements ClientService {
             }
         }
         // 登录发现天选屏蔽关注
-        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getFollow().isIs_tx_shield()) {
+        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getFollow().is_tx_shield()) {
             if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
                 if(checkTx==null) {
                     checkTx = HttpRoomData.httpGetCheckTX();
@@ -118,7 +125,7 @@ public class ClientServiceImpl implements ClientService {
             }
         }
         // 登录发现天选屏蔽欢迎
-        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getWelcome().isIs_tx_shield()) {
+        if (PublicDataConf.centerSetConf != null && PublicDataConf.centerSetConf.getWelcome().is_tx_shield()) {
             if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
                 if(checkTx==null) {
                    checkTx = HttpRoomData.httpGetCheckTX();
@@ -133,10 +140,10 @@ public class ClientServiceImpl implements ClientService {
         }
         if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
             if (PublicDataConf.centerSetConf != null
-                    && PublicDataConf.centerSetConf.getThank_gift().isIs_guard_local()) {
+                    && PublicDataConf.centerSetConf.getThank_gift().is_guard_local()) {
                 if (GuardFileTools.read() != null && GuardFileTools.read().size() > 0) {
                 } else {
-                    ConcurrentHashMap<Long, String> guards = HttpRoomData.httpGetGuardList();
+                    Map<Long, String> guards = HttpRoomData.httpGetGuardList();
                     if (guards != null && guards.size() > 0) {
                         for (Entry<Long, String> entry : guards.entrySet()) {
                             GuardFileTools.write(entry.getKey() + "," + entry.getValue());
@@ -152,17 +159,7 @@ public class ClientServiceImpl implements ClientService {
 
     public void reConnService() throws Exception {
         if (!PublicDataConf.webSocketProxy.isOpen()) {
-            threadComponent.closeHeartByteThread();
-            threadComponent.closeUserOnlineThread();
-            threadComponent.closeAdvertThread();
-            threadComponent.closeSendBarrageThread();
-            threadComponent.closeLogThread();
-            threadComponent.closeGiftShieldThread();
-            threadComponent.closeFollowShieldThread();
-            threadComponent.closeWelcomeShieldThread();
-            threadComponent.closeAutoReplyThread();
-            threadComponent.closeSmallHeartThread();
-            threadComponent.closeParseMessageThread();
+            threadComponent.closeAll();
             RoomInit roomInit = HttpRoomData.httpGetRoomInit(PublicDataConf.ROOMID);
             Room room = HttpRoomData.httpGetRoomData(PublicDataConf.ROOMID);
             try {
@@ -232,34 +229,8 @@ public class ClientServiceImpl implements ClientService {
                     PublicDataConf.webSocketProxy.closeConnection(1000, "手动关闭");
                     PublicDataConf.webSocketProxy = null;
                 }
-                threadComponent.closeHeartByteThread();
-                threadComponent.closeUserOnlineThread();
-                threadComponent.closeAdvertThread();
-                threadComponent.closeSendBarrageThread();
-                threadComponent.closeLogThread();
-                threadComponent.closeGiftShieldThread();
-                threadComponent.closeFollowShieldThread();
-                threadComponent.closeWelcomeShieldThread();
-                threadComponent.closeAutoReplyThread();
-                threadComponent.closeSmallHeartThread();
-                threadComponent.closeParseMessageThread();
-                PublicDataConf.SHIELDGIFTNAME = null;
-                PublicDataConf.replys.clear();
-                PublicDataConf.resultStrs.clear();
-                PublicDataConf.thankGiftConcurrentHashMap.clear();
-                PublicDataConf.barrageString.clear();
-                PublicDataConf.interacts.clear();
-                PublicDataConf.logString.clear();
-                PublicDataConf.interactWelcome.clear();
-                PublicDataConf.ISSHIELDWELCOME=false;
-                PublicDataConf.ISSHIELDFOLLOW=false;
-                PublicDataConf.ROOMID = null;
-                PublicDataConf.ANCHOR_NAME = null;
-                PublicDataConf.AUID = null;
-                PublicDataConf.FANSNUM = null;
-                PublicDataConf.SHORTROOMID = null;
-                PublicDataConf.lIVE_STATUS = 0;
-                PublicDataConf.ROOM_POPULARITY = 1L;
+                threadComponent.closeAll();
+                PublicDataConf.init_connect();
                 if (null == PublicDataConf.webSocketProxy || !PublicDataConf.webSocketProxy.isOpen()) {
                     flag = true;
                 }

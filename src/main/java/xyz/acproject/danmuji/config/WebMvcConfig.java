@@ -1,14 +1,17 @@
 package xyz.acproject.danmuji.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.ContentVersionStrategy;
+import org.springframework.web.servlet.resource.ResourceUrlEncodingFilter;
 import org.springframework.web.servlet.resource.VersionResourceResolver;
 import xyz.acproject.danmuji.conf.PublicDataConf;
 import xyz.acproject.danmuji.interceptors.LoginInterceptor;
+import xyz.acproject.danmuji.service.DanmujiInitService;
 
 /**
  * @author Jane
@@ -21,13 +24,14 @@ import xyz.acproject.danmuji.interceptors.LoginInterceptor;
 //@AutoConfigureAfter(DanmujiConfig.class)
 //@Import(DanmujiConfig.class)
 public class WebMvcConfig implements WebMvcConfigurer {
-    private DanmujiInitConfig danmujiInitConfig;
+    private DanmujiInitService danmujiInitService;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        danmujiInitConfig.init();
-        if (PublicDataConf.centerSetConf.isIs_manager_login()) {
-            registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/*").excludePathPatterns("/manager/login", "/manager/logins");
+        danmujiInitService.init();
+        if (PublicDataConf.centerSetConf.is_manager_login()) {
+            registry.addInterceptor(new LoginInterceptor()).addPathPatterns("/*")
+                    .excludePathPatterns("/manager/login", "/manager/logins","/test/**","/manager/test");
         }else {
         WebMvcConfigurer.super.addInterceptors(registry);
         }
@@ -38,12 +42,25 @@ public class WebMvcConfig implements WebMvcConfigurer {
         VersionResourceResolver versionResourceResolver = new VersionResourceResolver()
                 .addVersionStrategy(new ContentVersionStrategy(), "/**");
         registry.addResourceHandler("/**").addResourceLocations("classpath:/static/").setCachePeriod(2592000)
-                .resourceChain(true).addResolver(versionResourceResolver);
+                .resourceChain(true).addResolver(versionResourceResolver)
+        ;
 //        WebMvcConfigurer.super.addResourceHandlers(registry);
     }
 
+
+    /**
+     * 资源url编码过滤器
+     *
+     * @return {@link ResourceUrlEncodingFilter}
+     */
+    @Bean
+    public ResourceUrlEncodingFilter resourceUrlEncodingFilter() {
+        return new ResourceUrlEncodingFilter();
+    }
+
+
     @Autowired
-    public void setDanmujiConfig(DanmujiInitConfig danmujiInitConfig) {
-        this.danmujiInitConfig = danmujiInitConfig;
+    public void setDanmujiConfig(DanmujiInitService danmujiInitService) {
+        this.danmujiInitService = danmujiInitService;
     }
 }

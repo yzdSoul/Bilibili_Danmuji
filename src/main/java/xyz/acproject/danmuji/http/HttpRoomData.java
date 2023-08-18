@@ -101,7 +101,7 @@ public class HttpRoomData {
 		}
 		if (data == null)
 			return room;
-//		LOGGER.debug("获取到的room:" + data);
+//		LOGGER.info("获取到的room:" + data);
 		jsonObject = JSONObject.parseObject(data);
 		code = jsonObject.getShort("code");
 		if (code == 0) {
@@ -140,7 +140,7 @@ public class HttpRoomData {
 		}
 		if (data == null)
 			return roomInit;
-//		LOGGER.debug("获取到的room:" + data);
+//		LOGGER.info("获取到的room:" + data);
 		jsonObject = JSONObject.parseObject(data);
 		code = jsonObject.getShort("code");
 		if (code == 0) {
@@ -157,9 +157,11 @@ public class HttpRoomData {
 	 * 
 	 * @return
 	 */
-	public static RoomInfo httpGetRoomInfo() {
+	public static RoomInfoAnchor httpGetRoomInfo() {
 		String data = null;
 		JSONObject jsonObject = null;
+		RoomInfoAnchor roomInfoAnchor = new RoomInfoAnchor();
+		MedalInfoAnchor medalInfoAnchor=null;
 		RoomInfo roomInfo = null;
 		short code = -1;
 		Map<String, String> headers = null;
@@ -181,17 +183,21 @@ public class HttpRoomData {
 			data = null;
 		}
 		if (data == null)
-			return roomInfo;
-//		LOGGER.debug("获取到的room:" + data);
+			return roomInfoAnchor;
+//		LOGGER.info("获取到的room:" + data);
 		jsonObject = JSONObject.parseObject(data);
 		code = jsonObject.getShort("code");
 		if (code == 0) {
 			roomInfo = JSON.parseObject(((JSONObject) jsonObject.get("data")).getString("room_info"),
 					RoomInfo.class);
+			medalInfoAnchor = JSON.parseObject(jsonObject.getJSONObject("data").getJSONObject("anchor_info").getString("medal_info"),
+					MedalInfoAnchor.class);
 		} else {
 			LOGGER.error("获取房间详细信息失败，请稍后尝试:" + jsonObject.getString("message"));
 		}
-		return roomInfo;
+		roomInfoAnchor.setRoomInfo(roomInfo);
+		roomInfoAnchor.setMedalInfoAnchor(medalInfoAnchor);
+		return roomInfoAnchor;
 	}
 
 	/**
@@ -314,9 +320,9 @@ public class HttpRoomData {
 		return followersNum;
 	}
 
-	public static ConcurrentHashMap<Long, String> httpGetGuardList() {
+	public static Map<Long, String> httpGetGuardList() {
 		String data = null;
-		ConcurrentHashMap<Long, String> hashtable = new ConcurrentHashMap<Long, String>();
+		Map<Long, String> guardMap = new ConcurrentHashMap<>();
 		JSONObject jsonObject = null;
 		JSONArray jsonArray = null;
 		Map<String, String> headers = null;
@@ -366,12 +372,12 @@ public class HttpRoomData {
 						// TODO 自动生成的 catch 块
 						e.printStackTrace();
 					}
-					hashtable.put(((JSONObject) object).getLong("uid"), ((JSONObject) object).getString("username"));
+					guardMap.put(((JSONObject) object).getLong("uid"), ((JSONObject) object).getString("username"));
 				}
 				if (i == 1) {
 					jsonArray = ((JSONObject) jsonObject.get("data")).getJSONArray("top3");
 					for (Object object : jsonArray) {
-						hashtable.put(((JSONObject) object).getLong("uid"),
+						guardMap.put(((JSONObject) object).getLong("uid"),
 								((JSONObject) object).getString("username"));
 					}
 				}
@@ -379,7 +385,7 @@ public class HttpRoomData {
 				LOGGER.error("直播房间号不存在，或者未知错误，请尝试更换房间号,原因:" + jsonObject.getString("message"));
 			}
 		}
-		return hashtable;
+		return guardMap;
 	}
 
 	public static int httpGetGuardListTotalSize() {

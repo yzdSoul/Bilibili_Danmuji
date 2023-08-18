@@ -2,6 +2,8 @@ package xyz.acproject.danmuji.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,20 +15,21 @@ import xyz.acproject.danmuji.component.TaskRegisterComponent;
 import xyz.acproject.danmuji.conf.CenterSetConf;
 import xyz.acproject.danmuji.conf.PublicDataConf;
 import xyz.acproject.danmuji.conf.set.*;
-import xyz.acproject.danmuji.config.DanmujiInitConfig;
+import xyz.acproject.danmuji.service.DanmujiInitService;
 import xyz.acproject.danmuji.entity.login_data.LoginData;
 import xyz.acproject.danmuji.entity.login_data.Qrcode;
 import xyz.acproject.danmuji.entity.other.EditionResult;
 import xyz.acproject.danmuji.entity.other.InitCheckServerParam;
 import xyz.acproject.danmuji.entity.room_data.RoomBlock;
-import xyz.acproject.danmuji.file.JsonFileTools;
+import xyz.acproject.danmuji.tools.file.JsonFileTools;
 import xyz.acproject.danmuji.http.HttpOtherData;
 import xyz.acproject.danmuji.http.HttpRoomData;
 import xyz.acproject.danmuji.http.HttpUserData;
-import xyz.acproject.danmuji.returnJson.Response;
+import xyz.acproject.danmuji.entity.base.Response;
 import xyz.acproject.danmuji.service.ClientService;
 import xyz.acproject.danmuji.service.SetService;
 import xyz.acproject.danmuji.tools.CurrencyTools;
+import xyz.acproject.danmuji.tools.ParseSetStatusTools;
 import xyz.acproject.danmuji.utils.FastJsonUtils;
 import xyz.acproject.danmuji.utils.QrcodeUtils;
 import xyz.acproject.danmuji.utils.SchedulingRunnableUtil;
@@ -34,9 +37,8 @@ import xyz.acproject.danmuji.utils.SchedulingRunnableUtil;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,13 +51,13 @@ import java.util.stream.Collectors;
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
 @Controller
-@Deprecated
 public class WebController {
     private SetService checkService;
     private ClientService clientService;
     @Resource
-    private DanmujiInitConfig danmujiInitConfig;
+    private DanmujiInitService danmujiInitService;
     private TaskRegisterComponent taskRegisterComponent;
+    private static final Logger LOGGER = LogManager.getLogger(WebController.class);
 
     @RequestMapping(value = {"/", "index"})
     public String index(HttpServletRequest req, Model model) {
@@ -69,7 +71,7 @@ public class WebController {
         model.addAttribute("NEW_EDITION", PublicDataConf.NEW_EDITION);
         model.addAttribute("ROOMID", PublicDataConf.ROOMID);
         model.addAttribute("POPU", PublicDataConf.ROOM_POPULARITY);
-        model.addAttribute("MANAGER", PublicDataConf.USERMANAGER != null ? PublicDataConf.USERMANAGER.isIs_manager() : false);
+        model.addAttribute("MANAGER", PublicDataConf.USERMANAGER != null ? PublicDataConf.USERMANAGER.is_manager() : false);
         if (PublicDataConf.USER != null) {
             model.addAttribute("USER", PublicDataConf.USER);
         }
@@ -142,7 +144,7 @@ public class WebController {
         jsonObject = JSONObject.parseObject(jsonString);
         if (jsonObject != null) {
             if (jsonObject.getBoolean("status")) {
-                danmujiInitConfig.init();
+                danmujiInitService.init();
 //                checkService.init();
                 if (PublicDataConf.USER != null) {
                     req.getSession().setAttribute("status", "login");
@@ -156,9 +158,13 @@ public class WebController {
     @ResponseBody
     @PostMapping(value = "/customCookie")
     public Response<?> customCookie(String cookie,HttpServletRequest req){
-        boolean flag = CurrencyTools.pariseCookie(cookie);
+        boolean flag = CurrencyTools.parseCookie(cookie);
         if(flag){
-            danmujiInitConfig.init();
+            danmujiInitService.init();
+            //弹幕长度刷新
+            if (!StringUtils.isEmpty(PublicDataConf.USERCOOKIE)) {
+                HttpUserData.httpGetUserBarrageMsg();
+            }
         }
         return Response.success(flag,req);
     }
@@ -214,57 +220,130 @@ public class WebController {
         return Response.success(PublicDataConf.ROOM_POPULARITY, req);
     }
 
+
     @ResponseBody
     @GetMapping(value = "/getSet")
-    public Response<?> getSet(HttpServletRequest req) {
+    public Response<?> get(HttpServletRequest req) {
         return Response.success(PublicDataConf.centerSetConf, req);
     }
 
     @ResponseBody
     @PostMapping(value = "/sendSet")
-    public Response<?> sendSet(HttpServletRequest req, @RequestParam("set") String set) {
+    public Response<?> send(HttpServletRequest req, @RequestParam("set") String set) {
         try {
             CenterSetConf centerSetConf = JSONObject.parseObject(set, CenterSetConf.class);
+            //配置不一样 刷新页面
+            if(!StringUtils.equals(centerSetConf.getEdition(),PublicDataConf.EDITION))return Response.success(2,req);
             //登录设置
-            if (centerSetConf.isIs_manager_login() && StringUtils.isNotBlank(centerSetConf.getManager_key())) {
+            if (centerSetConf.is_manager_login() && StringUtils.isNotBlank(centerSetConf.getManager_key())) {
                 centerSetConf.setManager_key(DigestUtils.md5DigestAsHex(centerSetConf.getManager_key().getBytes()));
             }else if(StringUtils.isBlank(centerSetConf.getManager_key())){
                 centerSetConf.setManager_key(PublicDataConf.centerSetConf.getManager_key());
             }
             //签到时间 & 打卡时间
-            if(centerSetConf.isIs_dosign()&&!centerSetConf.getSign_time().equals(PublicDataConf.centerSetConf.getSign_time())){
+            if(centerSetConf.is_dosign()&&!centerSetConf.getSign_time().equals(PublicDataConf.centerSetConf.getSign_time())){
                 SchedulingRunnableUtil task = new SchedulingRunnableUtil("dosignTask", "dosign");
+                taskRegisterComponent.removeTask(task);
                 taskRegisterComponent.addTask(task, CurrencyTools.dateStringToCron(centerSetConf.getSign_time()));
             }
-            if(centerSetConf.getClock_in()!=null&&centerSetConf.getClock_in().isIs_open()&&!centerSetConf.getClock_in().getTime().equals(PublicDataConf.centerSetConf.getClock_in().getTime())){
+            if(centerSetConf.getClock_in()!=null&&centerSetConf.getClock_in().is_open()&&!centerSetConf.getClock_in().getTime().equals(PublicDataConf.centerSetConf.getClock_in().getTime())){
                 SchedulingRunnableUtil dakatask = new SchedulingRunnableUtil("dosignTask", "clockin");
+                taskRegisterComponent.removeTask(dakatask);
                 taskRegisterComponent.addTask(dakatask, CurrencyTools.dateStringToCron(centerSetConf.getClock_in().getTime()));
             }
             //自动送礼时间
-            if(centerSetConf.getAuto_gift()!=null&&centerSetConf.getAuto_gift().isIs_open()&&
+            if(centerSetConf.getAuto_gift()!=null&&centerSetConf.getAuto_gift().is_open()&&
                     !centerSetConf.getAuto_gift().getTime().equals(PublicDataConf.centerSetConf.getAuto_gift().getTime())){
                 SchedulingRunnableUtil autoSendGiftTask = new SchedulingRunnableUtil("dosignTask","autosendgift");
                 taskRegisterComponent.removeTask(autoSendGiftTask);
+                taskRegisterComponent.addTask(autoSendGiftTask, CurrencyTools.dateStringToCron(centerSetConf.getAuto_gift().getTime()));
             }
-            checkService.changeSet(centerSetConf);
+            //更改
+            //公告
+            if(centerSetConf.getAdvert()==null&&PublicDataConf.centerSetConf.getAdvert()!=null){
+                centerSetConf.setAdvert(PublicDataConf.centerSetConf.getAdvert());
+            }
+            if (centerSetConf.getAdvert() == null&&PublicDataConf.centerSetConf.getAdvert()==null) {
+                centerSetConf.setAdvert(new AdvertSetConf());
+            }
+            //关注
+            if(centerSetConf.getFollow()==null&&PublicDataConf.centerSetConf.getFollow()!=null){
+                centerSetConf.setFollow(PublicDataConf.centerSetConf.getFollow());
+            }
+            if (centerSetConf.getFollow() == null&&PublicDataConf.centerSetConf.getFollow()==null) {
+                centerSetConf.setFollow(new ThankFollowSetConf());
+            }
+            //谢礼物
+            if(centerSetConf.getThank_gift()==null&&PublicDataConf.centerSetConf.getThank_gift()!=null){
+                centerSetConf.setThank_gift(PublicDataConf.centerSetConf.getThank_gift());
+            }
+            if(centerSetConf.getThank_gift()==null&&PublicDataConf.centerSetConf.getThank_gift()==null){
+                centerSetConf.setThank_gift(new ThankGiftSetConf());
+            }
+            //自动回复
+            if(centerSetConf.getReply()==null&&PublicDataConf.centerSetConf.getReply()!=null){
+                centerSetConf.setReply(PublicDataConf.centerSetConf.getReply());
+            }
+            if(centerSetConf.getReply()==null&&PublicDataConf.centerSetConf.getReply()==null){
+                centerSetConf.setReply(new AutoReplySetConf());
+            }
+            //自动打卡
+            if(centerSetConf.getClock_in()==null&&PublicDataConf.centerSetConf.getClock_in()!=null){
+                centerSetConf.setClock_in(PublicDataConf.centerSetConf.getClock_in());
+            }
+            if(centerSetConf.getClock_in()==null&&PublicDataConf.centerSetConf.getClock_in()==null){
+                centerSetConf.setClock_in(new ClockInSetConf(false,"签到"));
+            }
+            //欢迎
+            if(centerSetConf.getWelcome()==null&&PublicDataConf.centerSetConf.getWelcome()!=null){
+                centerSetConf.setWelcome(PublicDataConf.centerSetConf.getWelcome());
+            }
+            if(centerSetConf.getWelcome()==null&&PublicDataConf.centerSetConf.getWelcome()==null){
+                centerSetConf.setWelcome(new ThankWelcomeSetConf());
+            }
+            //自动送礼
+            if(centerSetConf.getAuto_gift()==null&&PublicDataConf.centerSetConf.getAuto_gift()!=null){
+                centerSetConf.setAuto_gift(PublicDataConf.centerSetConf.getAuto_gift());
+            }
+            if(centerSetConf.getAuto_gift()==null&&PublicDataConf.centerSetConf.getAuto_gift()==null){
+                centerSetConf.setAuto_gift(new AutoSendGiftConf());
+            }
+            //隐私模式
+            if(centerSetConf.getPrivacy()==null&&PublicDataConf.centerSetConf.getPrivacy()!=null){
+                centerSetConf.setPrivacy(PublicDataConf.centerSetConf.getPrivacy());
+            }
+            if(centerSetConf.getPrivacy()==null&&PublicDataConf.centerSetConf.getPrivacy()==null){
+                centerSetConf.setPrivacy(new PrivacySetConf());
+            }
+            //黑名单
+            if(centerSetConf.getBlack()==null&&PublicDataConf.centerSetConf.getBlack()!=null){
+                centerSetConf.setBlack(PublicDataConf.centerSetConf.getBlack());
+            }
+            if(centerSetConf.getBlack()==null&&PublicDataConf.centerSetConf.getBlack()==null){
+                centerSetConf.setBlack(new BlackListSetConf());
+            }
+            checkService.changeSet(centerSetConf,true);
         } catch (Exception e) {
+            e.printStackTrace();
             // TODO: handle exception
-            return Response.success(false, req);
+            return Response.success(0, req);
         }
-        return Response.success(true, req);
+        return Response.success(1, req);
     }
 
-    @ResponseBody
-    @GetMapping(value = "/getIp")
-    public Response<?> getIp(HttpServletRequest req) {
-        String ip = HttpOtherData.httpGetIp();
-        if (!StringUtils.isEmpty(ip)) {
-            return Response.success(ip, req);
-        } else {
-            return Response.success(null, req);
-        }
 
-    }
+    //隐私模式后移除网络调用
+//    @ResponseBody
+//    @GetMapping(value = "/getIp")
+//    public Response<?> getIp(HttpServletRequest req) {
+//        String ip = HttpOtherData.httpGetIp();
+//        if (!StringUtils.isEmpty(ip)) {
+//            return Response.success(ip, req);
+//        } else {
+//            return Response.success(null, req);
+//        }
+//
+//    }
 
     @ResponseBody
     @GetMapping("/checkWebInit")
@@ -290,7 +369,7 @@ public class WebController {
     @ResponseBody
     @GetMapping(value = "/checkupdate")
     public Response<?> checkUpdate(HttpServletRequest req) {
-        String edition = HttpOtherData.httpGetNewEdition();
+        String edition = PublicDataConf.centerSetConf.getPrivacy().is_open()?PublicDataConf.EDITION:HttpOtherData.httpGetNewEdition();
         EditionResult editionResult = new EditionResult();
         editionResult.setEdition(edition);
         if (!StringUtils.isEmpty(edition)) {
@@ -316,7 +395,7 @@ public class WebController {
     @ResponseBody
     @GetMapping(value = "/getNewEdition")
     public Response<?> getNewEdition(HttpServletRequest req) {
-        String edition = HttpOtherData.httpGetNewEdition();
+        String edition = PublicDataConf.centerSetConf.getPrivacy().is_open()?PublicDataConf.EDITION:HttpOtherData.httpGetNewEdition();
         if (!StringUtils.isEmpty(edition)) {
             if (edition.equals("获取公告失败")) {
                 return Response.success(-1, req);
@@ -363,7 +442,7 @@ public class WebController {
             page = 1;
         }
         List<RoomBlock> roomBlockList = new ArrayList<>();
-        if (PublicDataConf.ROOMID != null && StringUtils.isNotBlank(PublicDataConf.USERCOOKIE) && PublicDataConf.USERMANAGER != null && PublicDataConf.USERMANAGER.isIs_manager()) {
+        if (PublicDataConf.ROOMID != null && StringUtils.isNotBlank(PublicDataConf.USERCOOKIE) && PublicDataConf.USERMANAGER != null && PublicDataConf.USERMANAGER.is_manager()) {
             roomBlockList = HttpRoomData.getBlockList(page);
         }
         return Response.success(roomBlockList, req);
@@ -381,6 +460,27 @@ public class WebController {
     }
 
     @ResponseBody
+    @GetMapping(value = "/setExportWeb")
+    public void setExportWeb(HttpServletResponse response) throws Exception {
+        File file = JsonFileTools.createJsonFileReturnFile(PublicDataConf.centerSetConf.toJson());
+        FileInputStream fileInputStream = new FileInputStream(file);
+        InputStream fis = new BufferedInputStream(fileInputStream);
+        byte[] buffer = new byte[fis.available()];
+        fis.read(buffer);
+        fis.close();
+        response.reset();
+        response.setCharacterEncoding("UTF-8");
+        response.addHeader("Content-Disposition", "attachment;filename=" + URLEncoder.encode(file.getName(), "UTF-8"));
+        response.addHeader("Content-Length", "" + file.length());
+        OutputStream outputStream = new BufferedOutputStream(response.getOutputStream());
+        response.setContentType("application/octet-stream");
+        outputStream.write(buffer);
+        outputStream.flush();
+    }
+
+
+    //配置文件导入
+    @ResponseBody
     @PostMapping(value = "/setImport")
     public Response<?> setImport(@RequestParam("file") MultipartFile file, HttpServletRequest req) throws IOException {
         if (!file.getResource().getFilename().endsWith(".json")) {
@@ -391,27 +491,14 @@ public class WebController {
         try {
             CenterSetConf centerSetConf = FastJsonUtils.parseObject(jsonString, CenterSetConf.class);
             if (centerSetConf != null) {
-                if (centerSetConf.getAdvert() == null) {
-                    centerSetConf.setAdvert(new AdvertSetConf());
-                }
-                if (centerSetConf.getFollow() == null) {
-                    centerSetConf.setFollow(new ThankFollowSetConf());
-                }
-                if (centerSetConf.getThank_gift() == null) {
-                    centerSetConf.setThank_gift(new ThankGiftSetConf());
-                }
-                if (centerSetConf.getReply() == null) {
-                    centerSetConf.setReply(new AutoReplySetConf());
-                }
-                if (centerSetConf.getWelcome() == null) {
-                    centerSetConf.setWelcome(new ThankWelcomeSetConf());
-                }
-                centerSetConf.setClock_in(PublicDataConf.centerSetConf.getClock_in());
+                centerSetConf = ParseSetStatusTools.initCenterChildConfig(centerSetConf);
+//                centerSetConf.setClock_in(PublicDataConf.centerSetConf.getClock_in());
                 BeanUtils.copyProperties(centerSetConf, PublicDataConf.centerSetConf);
                 //如果有密钥 如果没密
-                checkService.changeSet(centerSetConf);
+                checkService.changeSet(centerSetConf,true);
             }
         } catch (Exception e) {
+            LOGGER.error("setImport error", e);
             return Response.success(1, req);
         }
         return Response.success(0, req);

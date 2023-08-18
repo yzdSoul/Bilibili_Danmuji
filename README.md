@@ -1,3 +1,12 @@
+[![Github](https://img.shields.io/github/stars/BanqiJane/Bilibili_Danmuji?logo=github&style=flat)](https://github.com/BanqiJane/Bilibili_Danmuji)
+[![GitHub release](https://img.shields.io/github/v/release/BanqiJane/Bilibili_Danmuji.svg)](https://github.com/BanqiJane/Bilibili_Danmuji/releases)
+[![使用IntelliJ IDEA开发维护](https://img.shields.io/badge/IntelliJ%20IDEA-%E6%94%AF%E6%8C%81-blue.svg)](https://www.jetbrains.com/?from=Bilibili_Danmuji)
+[![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)](https://opensource.org/licenses/GPL-3.0)
+
+
+
+# 说明：**认准官方唯一github  本软件永久开源（开源即永久免费） 不存在任何收费 请各位谨慎识别**
+
 # 运行环境
 
 **可在所有主要操作系统上运行，并且仅需要安装Java JDK或JRE版本8或更高版本。要检查，请运行java -version：**
@@ -7,6 +16,8 @@ $ java -version
 java version "1.8.0_121"
 ```
 
+## 项目操作基于WebUI 即是浏览器网页操作
+## 关于浏览器网页操作面板
 **Bootstrap5 放弃了对 IE 的支持。**<br/>
 **以最新版本浏览器示例:**
 <table class="table">
@@ -21,6 +32,14 @@ java version "1.8.0_121"
     </tr>
   </thead>
   <tbody>
+  <tr>
+      <th scope="row">Linux</th>
+      <td>支持</td>
+      <td>支持</td>
+      <td class="text-muted">—</td>
+      <td class="text-muted">—</td>
+     <td class="text-muted">—</td>
+    </tr>
     <tr>
       <th scope="row">Mac</th>
       <td>支持</td>
@@ -40,13 +59,13 @@ java version "1.8.0_121"
   </tbody>
 </table>
 
-# 版本2.4.8
+# 版本2.6.41
 
-- **danmuji(常规版本 需要java环境) [地址](https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/2.4.8 "下载地址")**<br/><br/>
+- **danmuji(常规版本 需要java环境) [地址](https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/2.6.41 "下载地址")**<br/><br/>
 - **danmuji-green(
-  window64绿色版本，不用配置安装java环境) [地址](https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/2.4.8 "下载地址")**<br/><br/>
-- **danmuji-docker(docker版本,由B站用户[西凉君君](https://live.bilibili.com/101937 "B站主页地址")提供
-  在此感谢) [地址](https://registry.hub.docker.com/r/xilianghe/danmuji "地址")**<br/><br/>
+  window64绿色版本，不用配置安装java环境) [地址](https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/2.6.41 "下载地址")**<br/><br/>
+- ~~**danmuji-docker(docker版本,由B站用户[西凉君君](https://live.bilibili.com/101937 "B站主页地址")提供
+  在此感谢) [地址](https://registry.hub.docker.com/r/xilianghe/danmuji "地址")**~~<br/><br/>
 - **danmuji-docker(全框架docker镜像构建版本,由github用户[zzcabc](https://github.com/zzcabc "GitHub主页")提供
   在此感谢) 1.[docker地址](https://hub.docker.com/repository/docker/zzcabc/danmuji "地址") 2.[github项目页面](https://github.com/zzcabc/Docker_Buildx_Danmuji "github项目页面")**<br/><br/>
 - ~~**danmuji-heroku(heroku一键部署,警告:目前测试阶段) [地址](https://github.com/BanqiJane/BiliBili_Danmuji_Heroku "地址")**~~<br/><br/>
@@ -71,21 +90,24 @@ java version "1.8.0_121"
 - **弹幕保存本地**
 - **网页弹幕显示**
 - **扫码登录**
+- **cookie登录**
 - **自动获取弹幕长度及颜色**
 - **发送弹幕长度超出上限自动分条发送**
 - **礼物感谢**
+- **黑名单过滤屏蔽**
 
 1. **延迟感谢(可统计延时内赠送的礼物[包括礼物数量]合并感谢,一旦延时内有新礼物或数量变动就会重新刷新延时)！**
    **注意：现在破站能发重复弹幕的时间貌似为3秒 为了避免大多数感谢弹幕消失，通常建议这个设置为3秒以上 还有延迟设置过高礼物持续赠送可能会造成刷屏**
 2. 是否仅在直播中开启
-3. **4种感谢屏蔽模式(1自定义礼物名称，2屏蔽所有免费礼物，3低价值礼物，4自定义规则)**
+3. **4种感谢屏蔽模式(1自定义礼物名称，2屏蔽所有免费礼物，3低价值礼物，4自定义规则)** 自定义礼物名称可白名单或黑名单
 4. 可屏蔽天选时刻下的礼物
-5. **3种礼物感谢模式(单人单种，单人多种，多人多种)**
+5. **3种礼物感谢模式(单人单种，单人多种，~~多人多种~~)**
 6. 可调节每次感谢人数，礼物数
 7. 触发直播间有人上舰长后发送私信(用于发送舰长群)
-8. 感谢舰队和留言
+8. 感谢舰队和留言和红包
 9. 可选择是否输出礼物数量
 10. 可设置多条感谢弹幕模板
+11. 人员过滤屏蔽（本房间勋章，不限本房间的全部舰长）
 
 - **关注实时感谢(1.0.6+变为真正的实时感谢)**
 
@@ -102,6 +124,7 @@ java version "1.8.0_121"
 3. 可屏蔽天选时刻下的感谢
 4. **延迟感谢(可统计延时内关注,一旦延时内有新进入直播间观众就会重新刷新延时)！**
 5. 可设置多条感谢弹幕模板
+6. 人员过滤屏蔽（本房间勋章，不限本房间的全部舰长）
 
 - **定时发送弹幕(用于发送广告)**
 
@@ -115,26 +138,101 @@ java version "1.8.0_121"
 2. 并可以设置发送私信成功后直播间发送提醒弹幕
 3. 选择可不可以重复发送，即舰长信息保存本地，打开此设置需要重启弹幕姬，读取现有舰长数量，读取过程可能引起弹幕姬连接房间较慢<br/>
    (注意该功能仅统计弹幕姬开启时候的舰长，本地文件夹为guardFile，文件格式为guards（房间号）；格式为 uid,uname 亦可以按按照格式自己手动修改文件添加，注意不要为空)<br/>
-   4.礼品码模式 可以发送礼品码（规则：回车换行为分割不同礼品码 礼品码发送出去会自动删除 请用户刷新页面查看最新礼品码列表 礼品码参数为%giftCode%）
+4. 礼品码模式 可以发送礼品码（规则：回车换行为分割不同礼品码 礼品码发送出去会自动删除 请用户刷新页面查看最新礼品码列表 礼品码参数为%giftCode%）
+5. 礼品码要细致区分为 舰长 提督 总督 就必须设置指定开头 例如礼品码为456 要赠送给提督 那就`提督-456` 以此类推） 什么开头都没有表示可以赠送全部舰长等级
+6. 私信姬合计参数:
+   - 用户名称：`%uName%`
+   - 舰长等级名称：`%guardLevel%`
+   - 礼品码：`%giftCode%`
 
 - **自动回复姬**
 
 1. 是否仅在直播中开启
 2. 可调节多少秒间隔才能识别弹幕并自动回复
 3. 可设置多个关键字与屏蔽词
-4. 回复语提供%NAME%参数表示提问的人 %FANS% 实时获取关注数 %LIVETIME% 当前直播时间 %HOT% 当前人气值 %TIME% 打印北京时间 %WEATHER% 以打印推荐天气
-5. 含关键字封禁功能 提供%BLOCK%参数表示当前是一个封禁功能 和{{time}}参数表示封禁的时长单位小时 如果超过720或低于1 则默认为1小时 不设置也默认为1小时 如果有弹幕在里面 禁言成功则发送弹幕,失败则不发送;
-6. 可设置精确匹配
-7. 关键字可有满足条件A或条件B 发送内容C的功能(该功能多关键字也能用)
-8. 天气接口：固定参数 提问弹幕里面必须为@或#号开头 "天气"(实际种没有双引号)结尾 中间为城市和时间结合体(时间取数为：昨天，明天，后天，后两天，后三天)
-   例如 `#广州天气` 或者 `@广州天气` 或者 `#广州后天天气` 或者 `#广州昨天天气` ;推荐关键字配置为  `#||@，天气`
-   推荐配置参数为%WEATHER% 高级自定义配置参数有 %W_CITY% 城市名称 %W_DATE% 时间 %WENDU% 温度(仅当天有效) %L_WENDU% 最低温度 %H_WENDU% 最高温度 %W_FX% 风向
-   %W_TYPE% 天气类型 %W_FL% 风力 %W_TIPS% 感冒小提示
+4. 人员过滤屏蔽（本房间勋章，本房间舰长）
+5. 基础回复替换参数：
+   - 提问人的用户名称（触发回复姬的人）：`%NAME%`
+   - 实时获取关注数：`%FANS%`
+   - 实时获取多少人观看过：`%WATHER%`
+   - 实时获取直播间点赞数：`%LIKE%`
+   - 当前直播时长：`%LIVETIME%`
+   - 当前人气值：`%HOT%`
+   - 北京时间：`%TIME%`
+   - 推荐天气：`%WEATHER%`
+6. 含关键字封禁功能 提供 `%BLOCK%` 参数表示当前是一个封禁功能和 `{{time}}` 参数表示封禁的时长单位小时 如果超过720或低于1 则默认为1小时 不设置也默认为1小时 如果有弹幕在里面 禁言成功则发送弹幕,失败则不发送 例如 `%BLOCK%{{1}}` 表示禁言一小时;
+7. 可设置精确匹配
+8. 关键字可有满足条件A或条件B 发送内容C的功能(该功能多关键字也能用)
+9. 天气接口：
+   + **↓教程↓**
+   + 固定参数：提问弹幕里面必须为`@或#号开头`+`时间`+`中文的"天气"`两字(实际种没有双引号)结尾 
+   + 中间的时间取数为：`昨天，明天，后天，后两天(大后天)，后三天，后四天，后五天，后六天`
+   + 提问弹幕示例： `#广州天气` 或者 `#广州天气` 或者 `#广州后天天气` 或者 `#广州昨天天气` ;
+   + 推荐关键字配置：  `#||@，天气`
+   + **↓配置↓**
+   + 推荐配置参数（懒人）：`%WEATHER%`
+   + 城市名称：`%W_CITY%`
+   + 时间（yyyy年MM月dd日）：`%W_DATE%`
+   + 星期几：`%W_WEEK%`
+   + 湿度：`%SHIDU%` (仅当天有效)
+   + 温度：`%WENDU%` (仅当天有效)
+   + 最低温度：`%L_WENDU%`
+   + 最高温度：`%H_WENDU%`
+   + 温度区间：`%WENDU_RANGE%`
+   + 风向：`%W_FX%`
+   + 白天风向：`%W_FX_D%`
+   + 晚上风向：`%W_FX_N%`
+   + 天气类型：`%W_TYPE%`
+   + 白天天气类型：`%W_TYPE_D%`
+   + 晚上天气类型：`%W_TYPE_N%`
+   + 风力：`%W_FL%`
+   + 白天风力：`%W_FL_D%`
+   + 晚上风力：`%W_FL_N%`
+   + 日出：`%RICHU%`
+   + 日落：`%RILUO%`
+   + 小提示：`%W_TIP%` (仅当天有效)
+   + 小提示-洗车：`%W_TIP_XICHE%` (仅当天有效)
+   + 小提示-出游：`%W_TIP_CHUYOU%` (仅当天有效)
+   + 小提示-化妆：`%W_TIP_HUAZHUANG%` (仅当天有效)
+   + 小提示-穿衣：`%W_TIP_CHUANYI%` (仅当天有效)
+   + 小提示-感冒：`%W_TIP_GANMAO%` (仅当天有效)
+10. apex英雄数据接口:
+    - 轮换（即复制器）（天）：`%MAKER_DAY1% `
+    - 轮换（天）：`%MAKER_DAY2%`
+    - 轮换（周）：`%MAKER_WEEK1%`
+    - 轮换（周）：`%MAKER_WEEK2%`  推荐4个轮换一起用
+    - 赛季通行证结束时间（yyyy年MM月dd日HH时mm分ss秒）：`%PASS_END% `
+    - 商店刷新时间（yyyy年MM月dd日HH时mm分ss秒）：`%SHOP_REFRESH%`
+    - PC排位大逃杀当前轮换地图：`%PW_RP_NOWMAP%`
+    - PC排位大逃杀下一轮或者上一轮地图（根据赛季返回，需自行判断赛季）：`%PW_RP_OTHERMAP%`
+    - PC排位大逃杀结束时间（yyyy年MM月dd日HH时mm分ss秒）：`%PW_RP_ENDTIME%`
+    - PC排位竞技场当前轮换地图：`%PW_AP_NOWMAP%`
+    - PC排位竞技场下一轮地图：`%PW_AP_NEXMAP%`
+    - PC排位竞技场结束时间：`%PW_AP_ENDTIME%`
+    - PC匹配大逃杀当前地图：`%PP_RP_NOWMAP%`
+    - PC匹配大逃杀下一轮地图：`%PP_RP_NEXMAP%`
+    - PC匹配大逃杀结束时间（yyyy年MM月dd日HH时mm分ss秒）：`%PP_RP_ENDTIME%`
+    - PC匹配竞技场当前地图：`%PP_AP_NOWMAP%`
+    - PC匹配竞技场下一轮地图：`%PP_AP_NEXMAP%`
+    - PC匹配竞技场结束时间（yyyy年MM月dd日HH时mm分ss秒）：`%PP_AP_ENDTIME%`
+    - PC大逃杀猎杀底分：`%PC_RP_DFEN%`
+    - PC大逃杀大师总数：`%PC_RP_MTOTAL%`
+    - PC竞技场猎杀底分：`%PC_AP_DFEN%`
+    - PC竞技场大师总数：`%PC_AP_MTOTAL%`
+    - PS4大逃杀猎杀底分：`%PS4_RP_DFEN%`
+    - PS4大逃杀大师总数：`%PS4_RP_MTOTAL%`
+    - PS4竞技场猎杀底分：`%PS4_AP_DFEN%`
+    - PS4竞技场大师总数：`%PS4_AP_MTOTAL%`
 
 - **礼物自动赠送姬**
 
 1. 自定义每日赠送时间
 2. 多个房间赠送(注意：多房间以中文逗号隔开，尽量用短号,这样可以减少请求)
+
+- **黑名单姬**
+
+1. 可供 感谢礼物姬 欢迎姬 感谢关注姬 自动回复姬 使用
+2. 根据用户uid和模糊名称 组合单独多个屏蔽
 
 - **网页高级弹幕显示**
 
@@ -146,7 +244,7 @@ java version "1.8.0_121"
 - **房间管理(可以撤销禁言)**
 - **模拟在线(老爷可增加在线经验)**
 - **断线自动重连(实验性)**
-- **在线小心心(实验性)**
+- ~~**在线小心心(实验性)**~~
 - **直播自动签到(实验性)**
 - **每日打卡-每日按现有勋章列表完成首日+100亲密度打卡(实验性)**
 - **弹幕姬所发出的任意弹幕 都可以完成首日+100亲密度任务**
@@ -157,7 +255,7 @@ java version "1.8.0_121"
 
 # 如何运行<br/>
 
-### 发布版本(环境配置好的前提下）<br/>
+### 发布版本(java环境配置好的前提下）<br/>
 
 项目目录下控制台执行：
 
@@ -187,7 +285,7 @@ $ java -jar BiliBili_Danmuji-2.0beta.jar
 - **首次开启舰长保存本地 会在项目目录下生成guardFile文件夹 用来存放舰长uid和名称**<br/>
 - **生成的用于存放弹幕文件名命名规则为 当天时间+房间号**<br/>
 - **localhost:23333/connect 连接房间地址**<br/>
-- **http://localhost:23333/cookie_set 自定义cookie地址**<br/>
+- **localhost:23333/cookie_set 自定义cookie地址**<br/>
 - **localhost:23333/login 扫码登录地址**<br/><br/>
   
 # 关于修改端口<br/>
@@ -255,6 +353,70 @@ $ java -jar BiliBili_Danmuji-2.0beta.jar
 # 版本详细<br/>
 
 <blockquote>
+    <blockquote>
+<h2>Beta2.6.41</h2>
+<p>临时修复未登录状态下用户名带*号的问题（破站目前灰度未登录用户隐私功能）</p>
+<p>尝试使网页端弹幕置底问题更符合使用</p>
+<p>改用协议3 brotli解压</p>    
+<p>修复部分已知bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.6.4</h2>
+<p>更改部分文字提示</p>
+<p>修复黑名单姬bug，黑名单姬添加全局包含模式</p>
+<p>添加https至wss适应</p>
+<p>增加web操作面板与弹幕姬版本检测</p>
+<p>禁言窗口和禁言列表窗口修改为自适应，进一步适配手机端</p>
+<p>导出设置json文件 添加时间戳命名</p>
+<p>日志文件添加时间分割，错误日志现在不会启动清空了</p>
+<p>修复部分已知bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.6.3</h2>
+ <p>新增黑名单姬</p>
+ <p>统一文件编码（utf8），更改文件权限</p>
+<p>显示模式新增弹幕显示开关和免费礼物显示开关</p>
+ <p>网页弹幕部分样式修改 修复网页弹幕偶尔不会置底的问题（alpha）</p>
+ <p>优化部分显示模式的ui，修复自动回复显示不全的ui问题</p>
+ <p>更换公网ip获取接口</p>
+ <p>新增开发调试模式 TEST_MODE</p>
+<p>修复部分已知bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.6.2</h2>
+ <p>礼物感谢姬新增自定义白名单黑名单切换 新增人员过滤</p>
+ <p>回复姬 欢迎姬 增加人员过滤</p>
+<p>新增私信姬参数 区分每个舰长等级不同礼品码</p>
+<p>修复部分已知bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.6.1</h2>
+ <p>回复姬天气接口回归</p>
+ <p>回复姬添加新参数 点赞数和观看人数</p>
+ <p>感谢姬和控制台增加红包打印和红包感谢</p>
+<p>修复部分已知bug（弹幕分行问题）</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.6.0</h2>
+ <p>新增apex接口</p>
+ <p>新增配置实时生效</p>
+  <p>优化操作界面操作（适配手机端）</p>
+  <p>移除小心心和部分不实用功能</p>
+  <p>修复部分已知bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.5.0</h2>
+ <p>修复自动送礼</p>
+ <p>新增隐私模式</p>
+  <p>新增网页配置文件下载</p>
+<p>修复部分bug</p>
+</blockquote>
+  <blockquote>
+<h2>Beta2.4.9</h2>
+ <p>修复每日勋章打卡</p>
+ <p>新增勋章弹幕屏蔽</p>
+<p>修复部分bug</p>
+</blockquote>
   <blockquote>
 <h2>Beta2.4.8</h2>
 <p>修复部分bug</p>

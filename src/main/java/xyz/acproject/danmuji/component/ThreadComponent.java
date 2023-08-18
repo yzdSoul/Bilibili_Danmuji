@@ -1,14 +1,9 @@
 package xyz.acproject.danmuji.component;
 
 import xyz.acproject.danmuji.conf.CenterSetConf;
-import xyz.acproject.danmuji.conf.set.ThankFollowSetConf;
-import xyz.acproject.danmuji.conf.set.ThankGiftRuleSet;
-import xyz.acproject.danmuji.conf.set.ThankGiftSetConf;
-import xyz.acproject.danmuji.conf.set.ThankWelcomeSetConf;
-import xyz.acproject.danmuji.enums.ShieldMessage;
+import xyz.acproject.danmuji.conf.set.*;
 
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @ClassName ThreadComponent
@@ -19,8 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
 public interface ThreadComponent {
+
+	void closeAll();
+
+	void closeUser(boolean close);
+
 	// 开启处理弹幕包线程 core
-	boolean startParseMessageThread(ConcurrentHashMap<ShieldMessage, Boolean> messageControlMap,
+	boolean startParseMessageThread(
 			CenterSetConf centerSetConf);
 
 	// 开启心跳线程 core
@@ -30,11 +30,14 @@ public interface ThreadComponent {
 	boolean startLogThread();
 
 	// 开启公告线程 need login
-	boolean startAdvertThread(CenterSetConf centerSetConf);
+//	boolean startAdvertThread(CenterSetConf centerSetConf);
+
+	// 开启公告线程 need login
+	boolean startAdvertThread(AdvertSetConf advertSetConf);
 
 	// 开启自动回复线程 need login
-	boolean startAutoReplyThread(CenterSetConf centerSetConf);
-
+//	boolean startAutoReplyThread(CenterSetConf centerSetConf);
+	boolean startAutoReplyThread(AutoReplySetConf autoReplySetConf);
 	// 开启发送弹幕线程 need login
 	boolean startSendBarrageThread();
 
@@ -60,18 +63,18 @@ public interface ThreadComponent {
 	// 开启public的关注感谢线程
 	void startParseThankFollowThread(ThankFollowSetConf thankFollowSetConf);
 
-	void startParseThankWelcomThread(ThankWelcomeSetConf thankWelcomeSetConf);
+	void startParseThankWelcomeThread(ThankWelcomeSetConf thankWelcomeSetConf);
 
 	// 设置处理弹幕包线程
-	void setParseMessageThread(ConcurrentHashMap<ShieldMessage, Boolean> messageControlMap,
+	void setParseMessageThread(
 			CenterSetConf centerSetConf);
 
 	// 设置公告线程 need login
-	void setAdvertThread(CenterSetConf centerSetConf);
-
+//	void setAdvertThread(CenterSetConf centerSetConf);
+	void setAdvertThread(AdvertSetConf advertThread);
 	// 设置自动回复线程 need login
-	void setAutoReplyThread(CenterSetConf centerSetConf);
-
+//	void setAutoReplyThread(CenterSetConf centerSetConf);
+	void setAutoReplyThread(AutoReplySetConf autoReplySetConf);
 	// 关闭处理弹幕包线程 core
 	void closeParseMessageThread();
 

@@ -5,9 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.util.CollectionUtils;
 import xyz.acproject.danmuji.conf.PublicDataConf;
+import xyz.acproject.danmuji.entity.Weather.WeatherV2;
+import xyz.acproject.danmuji.entity.apex.ApexMessage;
+import xyz.acproject.danmuji.entity.apex.PredatorResult;
 import xyz.acproject.danmuji.entity.heart.XData;
-import xyz.acproject.danmuji.entity.other.Weather;
+import xyz.acproject.danmuji.entity.Weather.Weather;
 import xyz.acproject.danmuji.utils.OkHttp3Utils;
 
 import java.util.*;
@@ -176,6 +180,8 @@ public class HttpOtherData {
         return uid;
     }
 
+
+    @Deprecated
     public static String httpGetIp() {
         String data = null;
         JSONObject jsonObject = null;
@@ -206,13 +212,46 @@ public class HttpOtherData {
                 LOGGER.error("获取ip失败" + jsonObject.toString());
             }
         } catch (Exception e) {
+            ip = "获取失败:请自行获取本机对公Ip地址";
             // TODO 自动生成的 catch 块
             LOGGER.error(e);
+            LOGGER.error(ip);
             data = null;
         }
-
         return ip;
     }
+
+    public static String httpGetIpV2() {
+        String data = "";
+        JSONObject jsonObject = null;
+        String code = "-1";
+        PredatorResult predatorResult = null;
+        Map<String, String> headers = null;
+        headers = new HashMap<>(2);
+        headers.put("user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36");
+        try {
+            data = OkHttp3Utils.getHttp3Utils()
+                    .httpGet("http://bilibili.acproject.xyz/ip", headers, null)
+                    .body().string();
+            if (data == null)
+                return "";
+            jsonObject = JSONObject.parseObject(data);
+            code = jsonObject.getString("code");
+            if (code.equals("200")) {
+                data = jsonObject.getString("result");
+            } else {
+                LOGGER.error("ip获取： 未知错误,原因:" + jsonObject.getString("msg"));
+            }
+        } catch (Exception e) {
+            // TODO 自动生成的 catch 块
+            LOGGER.error(e);
+            LOGGER.error("请求服务器超时，获取ip失败");
+            data = "";
+        }
+        return data;
+    }
+
 
     public static String httpPostEncsUrl() {
         String data = null;
@@ -303,13 +342,15 @@ public class HttpOtherData {
             // TODO 自动生成的 catch 块
             LOGGER.error("连接至加密服务器错误？不存在");
             data = null;
-            s=null;
+            s = null;
 //			e.printStackTrace();
         }
 
         return s;
     }
 
+    //隐私版本 移除了天气功能调用服务器
+    @Deprecated
     public static Weather httpPostWeather(String city, Short day) {
         String data = null;
         JSONObject jsonObject = null;
@@ -344,8 +385,10 @@ public class HttpOtherData {
         }
         return weather;
     }
-    // 天气接口http://wthrcdn.etouch.cn/weather_mini?city=北京  备用
 
+    // 天气接口http://wthrcdn.etouch.cn/weather_mini?city=北京  备用
+    /* 天气接口已废弃  */
+    @Deprecated
     public static Map<String, List<Weather>> httpGetweather(String city) {
         String data = null;
         JSONObject jsonObject = null;
@@ -378,7 +421,6 @@ public class HttpOtherData {
                 cname = ((JSONObject) jsonObject.get("data")).getString("city");
                 ganmao = ((JSONObject) jsonObject.get("data")).getString("ganmao");
                 wendu = ((JSONObject) jsonObject.get("data")).getString("wendu");
-
                 List<Weather> oldWeathers = new ArrayList<>();
                 Weather oldWeather = JSONObject.parseObject(((JSONObject) jsonObject.get("data")).getString("yesterday"), Weather.class);
                 oldWeather.setCity(cname);
@@ -401,5 +443,132 @@ public class HttpOtherData {
             weathers = null;
         }
         return weathers;
+    }
+
+    public static Map<String, WeatherV2> httpGetWeatherV2(String city) {
+        String data = null;
+        JSONObject jsonObject = null;
+        String code = "-200";
+        Map<String, String> headers = null;
+        Map<String, String> datas = null;
+        headers = new HashMap<>(2);
+        datas = new HashMap<>(5);
+        Map<String, WeatherV2> weathers = null;
+        headers.put("user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36");
+        try {
+            datas.put("edition", PublicDataConf.EDITION);
+            datas.put("time", String.valueOf(System.currentTimeMillis()));
+            datas.put("city", city);
+            data = OkHttp3Utils.getHttp3Utils()
+                    .httpGet("http://bilibili.acproject.xyz/weather", headers, datas)
+                    .body().string();
+        } catch (Exception e) {
+            // TODO 自动生成的 catch 块
+            LOGGER.error(e);
+            LOGGER.error("请求服务器超时，获取天气失败");
+            data = null;
+        }
+        if (data == null)
+            return null;
+        try {
+            jsonObject = JSONObject.parseObject(data);
+            code = jsonObject.getString("code");
+            if (code.equals("200")) {
+                weathers = new HashMap<String, WeatherV2>();
+                List<WeatherV2> weatherV2s = jsonObject.getJSONArray("result").toJavaList(WeatherV2.class);
+                if (!CollectionUtils.isEmpty(weatherV2s)) {
+                    int i = -1;
+                    //遍历器循环
+                    for (Iterator<WeatherV2> iterator = weatherV2s.iterator(); iterator.hasNext(); ) {
+                        WeatherV2 weatherV2 = iterator.next();
+                        weathers.put(i + "", weatherV2);
+                        i++;
+                    }
+                }
+            } else {
+                LOGGER.error("未知错误,原因:" + jsonObject.getString("msg"));
+            }
+        } catch (Exception e) {
+            weathers = null;
+        }
+        return weathers;
+    }
+
+    //apex 0PC排位大逃杀数据 1PC排位竞技场 3PS4大逃杀 4PS4竞技场
+
+    public static PredatorResult httpGetApexPredator(String key, String type) {
+        String data = null;
+        JSONObject jsonObject = null;
+        String code = "-1";
+        PredatorResult predatorResult = null;
+        Map<String, String> headers = null;
+        Map<String, String> datas = null;
+        headers = new HashMap<>(2);
+        headers.put("user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36");
+        datas = new HashMap<>(5);
+        if (StringUtils.isNotBlank(key)) {
+            datas.put("key", key);
+        }
+        if (StringUtils.isNotBlank(type)) {
+            datas.put("type", type);
+        }
+        try {
+            datas.put("edition", PublicDataConf.EDITION);
+            datas.put("time", String.valueOf(System.currentTimeMillis()));
+            data = OkHttp3Utils.getHttp3Utils()
+                    .httpGet("http://bilibili.acproject.xyz/apex_banked", headers, datas)
+                    .body().string();
+            if (data == null)
+                return predatorResult;
+            jsonObject = JSONObject.parseObject(data);
+            code = jsonObject.getString("code");
+            if (code.equals("200")) {
+                predatorResult = jsonObject.getObject("result", PredatorResult.class);
+            } else {
+                LOGGER.error("未知错误,原因:" + jsonObject.getString("msg"));
+            }
+        } catch (Exception e) {
+            // TODO 自动生成的 catch 块
+            LOGGER.error(e);
+            LOGGER.error("请求服务器超时，获取apex信息失败");
+            data = null;
+        }
+        return predatorResult;
+    }
+
+    public static ApexMessage httpGetApexMessage() {
+        String data = null;
+        JSONObject jsonObject = null;
+        String code = "-1";
+        ApexMessage apexMessage = null;
+        Map<String, String> headers = null;
+        Map<String, String> datas = null;
+        headers = new HashMap<>(2);
+        headers.put("user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36");
+        datas = new HashMap<>(3);
+        try {
+            datas.put("edition", PublicDataConf.EDITION);
+            datas.put("time", String.valueOf(System.currentTimeMillis()));
+            data = OkHttp3Utils.getHttp3Utils()
+                    .httpGet("http://bilibili.acproject.xyz/apex_message", headers, datas)
+                    .body().string();
+            if (data == null)
+                return apexMessage;
+            jsonObject = JSONObject.parseObject(data);
+            code = jsonObject.getString("code");
+            if (code.equals("200")) {
+                apexMessage = jsonObject.getObject("result", ApexMessage.class);
+            } else {
+                LOGGER.error("未知错误,原因:" + jsonObject.getString("msg"));
+            }
+        } catch (Exception e) {
+            // TODO 自动生成的 catch 块
+            LOGGER.error(e);
+            LOGGER.error("请求服务器超时，获取apex总信息失败");
+        }
+        return apexMessage;
     }
 }

@@ -78,14 +78,37 @@ $(function () {
             if (Number($(".thankgift_shield_status").children(
                 "option:selected").val()) !== 1) {
                 $(".thankgift_shield").hide();
+                $(".thankgift_list_gift_shield_status").hide();
             } else {
                 $(".thankgift_shield").show();
+                $(".thankgift_list_gift_shield_status").show();
             }
             if (Number($(".thankgift_shield_status").children(
                 "option:selected").val()) !== 4) {
                 $("#gift-shield-btn").hide();
             } else {
                 $("#gift-shield-btn").show();
+            }
+        });
+    $('.thankgift_list_gift_shield_status').change(
+        function () {
+            if (Number($(".thankgift_list_gift_shield_status").children(
+                "option:selected").val()) !== 1) {
+                //白名单
+                $(".thankgift_shield").attr('placeholder',
+                    "白名单模式：自定义通过礼物名字，以 中文逗号(，)为分割；示例：\n辣条，亿圆，友谊的小船\n注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用\n默认黑名单，相反白名单（仅感谢填写的）");
+                $(".thankgift_shield")
+                    .attr('title',
+                        '白名单模式：这里填写自定义通过礼物名字，以 中文逗号(，)为分割；示例：<br/>辣条，亿圆，友谊的小船<br/><span class=\'red-font\'>注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用<br/>默认黑名单，相反白名单（仅感谢填写的）</span>');
+
+            } else {
+                //黑名单
+                $(".thankgift_shield").attr('placeholder',
+                    "黑名单模式：自定义屏蔽礼物名字，以 中文逗号(，)为分割；示例：\n辣条，亿圆，友谊的小船\n注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用\n默认黑名单，相反白名单（仅感谢填写的）");
+                $(".thankgift_shield")
+                    .attr('title',
+                        '黑名单模式：这里填写自定义屏蔽礼物名字，以 中文逗号(，)为分割；示例：<br/>辣条，亿圆，友谊的小船<br/><span class=\'red-font\'>注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用<br/>默认黑名单，相反白名单（仅感谢填写的）</span>');
+
             }
         });
     $(document).on('click', '.btn-connect-d', function () {
@@ -99,6 +122,11 @@ $(function () {
             $(this).attr("disabled", true);
         }
     });
+    $(document).on('click', '#danmu_open', function () {
+        let url_start = window.location.host;
+        let protocol = window.location.protocol;
+        $(".connect-docket").val((protocol === 'http:' ? "ws://" : "wss://") + url_start + "/danmu/sub");
+    });
     $('body').click(function (e) {
         let target = $(e.target);
         if (!target.is('.danmu-child-li')) {
@@ -108,246 +136,24 @@ $(function () {
             }
         }
     });
+    $('.auto_save_set').on('input propertychange', function () {
+        publicData.set.auto_save_set = $(".auto_save_set").is(':checked');
+    });
 });
+//实时保存
+$(document).on('input propertychange', '.live-save', function () {
+    if ($(".auto_save_set").is(':checked')) {
+        method.saveSet();
+    } else {
+    }
+});
+//按钮保存
 $(document).on(
     'click',
-    '.set-hold',
-    function () {
-        let c1 = false;
-        let c2 = false;
-        let c3 = false;
-        let c4 = false;
-        let c5 = false;
-        let c6 = false;
-        let c7 = false;
-        let c8 = false;
-        let c9 = false;
-        let c10 = false;
-        let c11 = false;
-        let set = {
-            "thank_gift": {
-                "giftStrings": [],
-                "thankGiftRuleSets": [],
-                "codeStrings": [],
-            },
-            "advert": {},
-            "follow": {},
-            "reply": {"autoReplySets": []},
-            "clock_in": {},
-            "welcome": {},
-            "auto_gift":{},
-        };
-        set.is_auto = $(".is_autoStart").is(
-            ':checked');
-        set.win_auto_openSet = $(".win_auto_openSet").is(':checked');
-        set.is_barrage_guard = $(".is_barrage_guard").is(
-            ':checked');
-        set.is_barrage_vip = $(".is_barrage_vip").is(
-            ':checked');
-        set.is_barrage_manager = $(".is_barrage_manager").is(':checked');
-        set.is_barrage_medal = $(".is_barrage_medal").is(':checked');
-        set.is_barrage_ul = $(".is_barrage_ul").is(':checked');
-        set.is_block = $(".is_block").is(':checked');
-        set.is_cmd = $(".is_cmd").is(':checked');
-        set.is_gift = $(".is_gift").is(':checked');
-        set.is_welcome = $(".is_welcome").is(':checked');
-        set.is_welcome_all = $(".is_welcome_all").is(':checked');
-        set.is_follow = $(".is_follow").is(':checked');
-        set.is_log = $(".is_log").is(':checked');
-        set.is_online = $(".is_online").is(':checked');
-        /* 管理登录 */
-        set.is_manager_login = $(".is_manager_login").is(':checked');
-        set.manager_maxSize = Number($(".manager_maxSize").val());
-        //密码就不set给前端了
-        set.manager_key = $(".manager_key").val();
-        /* 管理结束*/
-        set.is_sh = $(".is_sh").is(':checked');
-        set.is_dosign = $(".is_dosign").is(':checked');
-        set.sign_time = method.time_parse($(".sign_time").val());
-        set.thank_gift.is_open = $(".thankgift_is_open").is(':checked');
-        set.thank_gift.is_live_open = $(".thankgift_is_live_open").is(
-            ':checked');
-        set.thank_gift.is_tx_shield = $(".thankgift_is_tx_shield").is(
-            ':checked');
-        set.thank_gift.is_num = $(".thankgift_is_num").is(':checked');
-        set.thank_gift.shield_status = Number($(".thankgift_shield_status")
-            .find("option:selected").val()) - 1;
-        set.thank_gift.giftStrings = method.giftStrings_handle(set.thank_gift.giftStrings, $(".thankgift_shield").val());
-        if ($(".shieldgifts-tbody tr").length > 0) {
-            let thankGiftRuleSet = {};
-            $(".shieldgifts-tbody tr").each(function (i, v) {
-                thankGiftRuleSet.is_open = $(".shieldgifts_open").eq(i).is(':checked');
-                thankGiftRuleSet.gift_name = $(".shieldgifts_name").eq(i).val();
-                thankGiftRuleSet.status = Number($(".shieldgifts_status").eq(i).find("option:selected").val()) - 1;
-                thankGiftRuleSet.num = Number($(".shieldgifts_num").eq(i).val());
-                set.thank_gift.thankGiftRuleSets.push(thankGiftRuleSet);
-                thankGiftRuleSet = {};
-            });
-        }
-        if ($(".replys-ul li").length > 0) {
-            let autoReplySet = {};
-            $(".replys-ul li").each(function (i, v) {
-                autoReplySet.is_open = $(".reply_open").eq(i).is(':checked');
-                autoReplySet.is_accurate = $(".reply_oc").eq(i).is(':checked');
-                let keywords = [];
-                let shields = [];
-                autoReplySet.keywords = method.giftStrings_handle(keywords, $(".reply_keywords").eq(i).val());
-                autoReplySet.shields = method.giftStrings_handle(shields, $(".reply_shields").eq(i).val());
-                autoReplySet.reply = $(".reply_rs").eq(i).val();
-                set.reply.autoReplySets.push(autoReplySet);
-                autoReplySet = {};
-            });
-
-        }
-        set.thank_gift.thank_status = Number($(".thankgift_thank_status")
-            .find("option:selected").val()) - 1;
-        set.thank_gift.num = Number($(".thankgift_num").val());
-        set.thank_gift.delaytime = Number($(".thankgift_delaytime").val());
-        set.thank_gift.thank = $(".thankgift_thank").val();
-        set.thank_gift.is_guard_report = $(".thankgift_is_guard_report")
-            .is(':checked');
-        set.thank_gift.is_guard_local = $(".thankgift_is_guard_local")
-            .is(':checked');
-        set.thank_gift.is_gift_code = $(".thankgift_is_gift_code")
-            .is(':checked');
-        set.thank_gift.codeStrings = method.codeStrings_handle(set.thank_gift.codeStrings, $(".thankgift_codeStrings").val());
-        set.thank_gift.report = $(".thankgift_report").val();
-        set.thank_gift.report_barrage = $(".thankgift_barrageReport").val();
-        set.advert.is_open = $(".advert_is_open").is(':checked');
-        set.advert.is_live_open = $(".advert_is_live_open").is(':checked');
-        set.advert.status = Number($(".advert_status").find(
-            "option:selected").val()) - 1;
-        set.advert.time = Number($(".advert_time").val());
-        set.advert.adverts = $(".advert_adverts").val();
-        set.follow.is_open = $(".follow_is_open").is(':checked');
-        set.follow.is_live_open = $(".follow_is_live_open").is(':checked');
-        set.follow.is_tx_shield = $(".follow_tx_shield").is(':checked');
-        set.follow.num = Number($(".follow_num").val());
-        set.follow.follows = $(".follow_follows").val();
-        set.follow.delaytime = Number($(".thankfollow_delaytime").val());
-        set.welcome.is_open = $(".welcome_is_open").is(':checked');
-        set.welcome.is_live_open = $(".welcome_is_live_open").is(':checked');
-        set.welcome.is_tx_shield = $(".welcome_tx_shield").is(':checked');
-        set.welcome.num = Number($(".welcome_num").val());
-        set.welcome.welcomes = $(".welcome_welcomes").val();
-        set.welcome.delaytime = Number($(".thankwelcome_delaytime").val());
-        set.reply.is_open = $(".replys_is_open").is(':checked');
-        set.reply.is_live_open = $(".replys_is_live_open").is(':checked');
-        set.reply.time = Number($(".replys_time").val());
-        set.clock_in.is_open = $(".is_clockin").is(':checked');
-        set.clock_in.time = method.time_parse($(".clockin_time").val());
-        set.clock_in.barrage = $(".clockin_barrage").val();
-        set.auto_gift.is_open = $(".is_autoGift_open").is(':checked');
-        set.auto_gift.time = method.time_parse($(".autoGift_time").val());
-        set.auto_gift.room_id = $(".autoGift_roomids").val();
-        /*处理验证?*/
-        if (set.clock_in.is_open) {
-            set.clock_in.sign_day = (new Date()).getTime();
-        }
-        if ($(".follow_is_open").is(':checked')) {
-            if ($(".follow_follows").val().trim() !== null
-                && $(".follow_follows").val().trim() !== "") {
-            } else {
-                c1 = true;
-                method.delay_method(".notice-message", "感谢关注语不能为空");
-            }
-            if (Number($(".follow_num").val()) > 0) {
-
-            } else {
-                c5 = true;
-                method.delay_method(".notice-message", "感谢关注必须大于0");
-            }
-        }
-        if ($(".welcome_is_open").is(':checked')) {
-            if ($(".welcome_welcomes").val().trim() !== null
-                && $(".welcome_welcomes").val().trim() !== "") {
-            } else {
-                c9 = true;
-                method.delay_method(".notice-message", "感谢欢迎语不能为空");
-            }
-            if (Number($(".welcome_num").val()) > 0) {
-
-            } else {
-                c10 = true;
-                method.delay_method(".notice-message", "感谢欢迎必须大于0");
-            }
-        }
-        if ($(".thankgift_is_open").is(':checked')) {
-            if ($(".thankgift_thank").val().trim() !== null
-                && $(".thankgift_thank").val().trim() !== "") {
-
-            } else {
-                c2 = true;
-                method.delay_method(".notice-message", "感谢礼物语不能为空");
-            }
-            if ($(".thankgift_is_guard_report").is(':checked')) {
-                if ($(".thankgift_report").val().trim() !== null
-                    && $(".thankgift_report").val().trim() !== "") {
-                    if ($(".thankgift_report").val().length >= 500) {
-                        c6 = true;
-                        method.delay_method(".notice-message",
-                            "上舰回复语不能超过500字");
-                    }
-                } else {
-                    c3 = true;
-                    method.delay_method(".notice-message", "上舰回复语不能为空");
-                }
-            }
-        }
-        if ($(".advert_is_open").is(':checked')) {
-            if ($(".advert_adverts").val().trim() !== null
-                && $(".advert_adverts").val().trim() !== "") {
-            } else {
-                c4 = true;
-                method.delay_method(".notice-message", "广告语不能为空");
-            }
-
-        }
-        $(".shieldgifts-tbody").children("tr").each(function (i, v) {
-            if ($(".shieldgifts_name").eq(i).val().trim() == "") {
-                c7 = true;
-                method.delay_method(".notice-message", "自定义规则不能为空");
-            }
-        })
-        $(".replys-ul").children("li").each(function (i, v) {
-            if ($(".reply_keywords").eq(i).val() === "" || $(".reply_rs").eq(i).val() === "") {
-                c8 = true;
-                method.delay_method(".notice-message", "自动回复姬的关键字和回复语句都不能为空！！！");
-            } else {
-
-            }
-        });
-        if ($(".is_autoGift_open").is(':checked')) {
-            if($(".autoGift_roomids").val()==null||$(".autoGift_roomids").val().trim()===""){
-                c11=true;
-                method.delay_method(".notice-message", "礼物自动赠送姬房间号不能为空！！！");
-            }
-        }
-        if ($(".card-body").find(".logined").length > 0) {
-            if (!c1 && !c2 && !c3 && !c4 && !c5 && !c6 && !c7 && !c8 && !c9 && !c10&& !c11) {
-                publicData.set = method.initSet(set);
-                if (method.sendSet(set)) {
-                    method.delay_method(".success-message", "保存配置成功");
-                    alert("修改配置成功");
-                } else {
-                    method.delay_method(".notice-message", "修改配置失败");
-                    alert("修改配置失败");
-                }
-            } else {
-                method.delay_method(".notice-message", "修改配置失败");
-                alert("修改配置失败")
-            }
-        } else {
-            method.initSet(set);
-            if (method.sendSet(set)) {
-                method.delay_method(".success-message", "保存配置成功");
-                alert("修改配置成功");
-            } else {
-                method.delay_method(".notice-message", "修改配置失败");
-                alert("修改配置失败");
-            }
-        }
-    });
+    '.set-hold', function () {
+        method.saveSet();
+    }
+);
 $(document).on('click', '.is_guard_report_click', function () {
     if ($(".thankgift_is_guard_report").is(':checked')) {
         $(".thankgift_report").show();
@@ -377,20 +183,23 @@ $(document).on('click', '.import-set', function () {
 $(document).on('click', '.export-set', function () {
     method.setExprot();
 });
+$(document).on('click', '.export-set-web', function () {
+    method.setExprotWeb();
+});
 $(document).on('click', '.is_clockin', function () {
     if ($(".is_clockin").is(':checked')) {
         $(".clockin_barrage").show();
-        $(".clockin_time").attr("disabled",false);
+        $(".clockin_time").attr("disabled", false);
     } else {
         $(".clockin_barrage").hide();
-        $(".clockin_time").attr("disabled",true);
+        $(".clockin_time").attr("disabled", true);
     }
 });
 $(document).on('click', '.is_dosign', function () {
     if ($(".is_dosign").is(':checked')) {
-        $(".sign_time").attr("disabled",false);
+        $(".sign_time").attr("disabled", false);
     } else {
-        $(".sign_time").attr("disabled",true);
+        $(".sign_time").attr("disabled", true);
     }
 });
 $(document).on('click', '.is_online', function () {
@@ -403,9 +212,10 @@ $(document).on('click', '.is_online', function () {
 
 });
 $(document).on('click', '#gift-shield-btn', function () {
-    if (!$(".shieldgifts-mask").is(":visible")) {
-        $(".shieldgifts-mask").show();
-    }
+    // if (!$(".shieldgifts-mask").is(":visible")) {
+    //     $(".shieldgifts-mask").show();
+    // }
+
 
 });
 $(document).on('click', '#replys-btn', function () {
@@ -420,29 +230,30 @@ $(document).on('click', '.btn-close', function () {
     }
 });
 $(document).on('click', '.btn-close-block', function () {
-    if ($(".block-mask").is(":visible")) {
-        $(".block-mask").hide();
-    }
+    // if ($(".block-mask").is(":visible")) {
+        $("#block-model").modal('hide');
+    // }
 });
 $(document).on('click', '.btn-close-wel', function () {
     let is_kong = false;
-    if ($(".wel-mask").is(":visible")) {
-        $(".wel-mask").hide();
-    }
+    // if ($(".wel-mask").is(":visible")) {
+        $("#wel-model").modal('hide');
+    // }
 });
 $(document).on('click', '.btn-closer', function () {
     let is_hide = true;
-    if ($(".replys-mask").is(":visible")) {
-        $(".replys-ul").children("li").each(function (i, v) {
-            if ($(".reply_keywords").eq(i).val() === "" || $(".reply_rs").eq(i).val() === "") {
-                alert("关键字和回复语句都不能为空！！！");
-                is_hide = false;
-            }
-            if (!is_hide) return false;
-        });
-        if (!is_hide) return;
-        $(".replys-mask").hide();
-    }
+    /*    if ($(".replys-mask").is(":visible")) {*/
+    /*  $(".replys-ul").children("li").each(function (i, v) {
+          if ($(".reply_keywords").eq(i).val() === "" || $(".reply_rs").eq(i).val() === "") {
+              alert("关键字和回复语句都不能为空！！！");
+              is_hide = false;
+          }
+          if (!is_hide) return false;
+      });*/
+    if (!is_hide) return;
+    /*    $(".replys-mask").hide();*/
+    $('#reply-model').modal('hide');
+    /*    }*/
 });
 $(document).on('click', '.btn-block', function () {
     const uid = $(".block-input").attr("uid");
@@ -454,7 +265,7 @@ $(document).on('click', '.btn-block', function () {
             const code = method.block(uid, time);
             if (code === 0) {
                 alert("禁言成功");
-                $(".block-mask").hide();
+                $("#block-model").modal('hide');
             } else {
                 alert("禁言失败");
                 console.log("禁言纠错码:" + code)
@@ -472,17 +283,17 @@ $(document)
             $(".shieldgifts-tbody")
                 .append(
                     `<tr>
-									<td><input type='checkbox' class='shieldgifts_open' data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启' data-original-title='是否开启'></td>
-									<td><input class='small-input shieldgifts_name' placeholder='礼物名称' data-bs-toggle='tooltip' data-bs-placement='top' title='礼物名称' data-bs-html='true' data-original-title='礼物名称'></td>
+									<td><input type='checkbox' class='shieldgifts_open live-save' data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启' data-original-title='是否开启'></td>
+									<td><input class='small-input shieldgifts_name live-save' placeholder='礼物名称' data-bs-toggle='tooltip' data-bs-placement='top' title='礼物名称' data-bs-html='true' data-original-title='礼物名称'></td>
 									<td>
-									<select class='custom-select-sm shieldgifts_status' data-bs-toggle='tooltip' data-bs-placement='top' title='选择类型<br/>1:屏蔽对应数量<br/>2:屏蔽一坨礼物对应电池' data-bs-html='true' data-original-title='选择类型'>
+									<select class='custom-select-sm shieldgifts_status live-save' data-bs-toggle='tooltip' data-bs-placement='top' title='选择类型<br/>1:屏蔽对应数量<br/>2:屏蔽一坨礼物对应电池' data-bs-html='true' data-original-title='选择类型'>
 									<option value='1' selected='selected'>数量</option>
 									<option value='2'>电池</option></select>
 									</td>
 									<td>
-									<input type='number' min='0' class='small-input shieldgifts_num' placeholder='num' value='0' data-bs-toggle='tooltip' data-bs-placement='top' title='数量(电池)小于多少触发屏蔽' data-bs-html='true' data-original-title='大于多少(不得小于)'>
+									<input type='number' min='0' class='small-input shieldgifts_num live-save' placeholder='num' value='0' data-bs-toggle='tooltip' data-bs-placement='top' title='数量(电池)小于多少触发屏蔽(不能小于多少)' data-bs-html='true' data-original-title='大于多少(不得小于)'>
 									</td>
-									<td><button type='button' class='btn btn-danger btn-sm shieldgift_delete'>删除</button></td>
+									<td><button type='button' class='btn btn-danger btn-sm shieldgift_delete live-save'>删除</button></td>
 									</tr>`);
             let exampleTriggerEl2 = document.getElementById("shieldgift_add")
             let tooltip2 = bootstrap.Tooltip.getInstance(exampleTriggerEl2)
@@ -502,36 +313,36 @@ $(document)
         function () {
             $(".replys-ul")
                 .append(
-                    `<li><input type='checkbox' class='reply_open'
+                    `<li><input type='checkbox' class='reply_open live-save'
 						data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启'
 						data-bs-html='true' data-original-title='是否开启'>
-						<input type='checkbox' class='reply_oc'
+						<input type='checkbox' class='reply_oc live-save'
 						data-bs-toggle='tooltip' tabindex="0" data-bs-placement='top' title='是否精确匹配<br/>更多信息点进去编辑查看'
 						data-bs-html='true' data-original-title='是否精确匹配'> 
 						<span tabindex="0" placeholder='关键字'
 						data-bs-toggle='tooltip' data-bs-placement='top' title='外部不能编辑:多个关键字,以中文逗号隔开<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='关键字'>
-						<input class='small-input reply_keywords' tabindex="0" placeholder='关键字'
+						<input class='small-input reply_keywords live-save' tabindex="0" placeholder='关键字'
 						data-bs-toggle='tooltip' data-bs-placement='top' title='外部不能编辑:多个关键字,以中文逗号隔开<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='关键字' readonly='readonly' disabled>
 						</span>
 						<span tabindex="0" placeholder='屏蔽词'
 						data-bs-toggle='tooltip'  data-bs-placement='top' title='外部不能编辑:多个屏蔽词,以中文逗号隔开<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='关键字'>
-						<input class='small-input reply_shields' tabindex="0" placeholder='屏蔽词'
+						<input class='small-input reply_shields live-save' tabindex="0" placeholder='屏蔽词'
 						data-bs-toggle='tooltip'  data-bs-placement='top' title='外部不能编辑:多个屏蔽词,以中文逗号隔开<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='关键字' readonly='readonly' disabled>
 						</span>
 						<span placeholder='回复语句'
 						data-bs-toggle='tooltip'  data-bs-placement='top' title='外部不能编辑:回复语句,提供%AT%参数,以打印:@提问问题人名称<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='回复语句'>
-						<input class='big-input reply_rs'tabindex="0" placeholder='回复语句'
+						<input class='big-input reply_rs live-save'tabindex="0" placeholder='回复语句'
 						data-bs-toggle='tooltip'  data-bs-placement='top' title='外部不能编辑:回复语句,提供%AT%参数,以打印:@提问问题人名称<br/>更多信息点编辑进去查看或编辑'
 						data-bs-html='true' data-original-title='回复语句' readonly='readonly' disabled>
 						</span>
 						<span class='reply-btns'>
-						<button type='button' class='btn btn-success btn-sm reply_edit'>编辑</button>
-						<button type='button' class='btn btn-danger btn-sm reply_delete'>删除</button>
+						<button type='button' class='btn btn-success btn-sm reply_edit'  data-bs-toggle='modal' data-bs-target='#reply-model-edit'>编辑</button>
+						<button type='button' class='btn btn-danger btn-sm reply_delete live-save'>删除</button>
 						</span>
 					</li>`);
             let exampleTriggerEl2 = document.getElementById("replys_add")
@@ -548,9 +359,18 @@ $(document)
         });
 $(document).on('click', '.reply_delete', function () {
     $(this).parent().parent().remove();
+    if ($(".auto_save_set").is(':checked')) {
+        method.saveSet();
+    } else {
+
+    }
 });
 $(document).on('click', '.shieldgift_delete', function () {
     $(this).parent().parent().remove();
+    if ($(".auto_save_set").is(':checked')) {
+        method.saveSet();
+    } else {
+    }
 });
 $(document).on('click', '.del_block_click', function () {
     let id = $(this).attr("data-id");
@@ -575,54 +395,93 @@ $(document).on('click', '.block-next-page', function () {
         alert("没有更多数据了");
     }
 });
+// $('#reply-btns').delegate('.reply_edit','click', function () {
 $(document).on('click', '.reply_edit', function () {
     let index = $(this).parent().parent().index();
-    let is_open = $(this).parent().parent().children(".reply_open").is(':checked');
-    let is_oc = $(this).parent().parent().children(".reply_oc").is(':checked');
-    let keywords = $(this).parent().parent().children(".reply_keywords").val();
-    let shields = $(this).parent().parent().children(".reply_shields").val();
-    let rs = $(this).parent().parent().children(".reply_rs").val();
-    $(".radd-mask").show();
+    let is_open = $(this).parent().parent().find(".reply_open").is(':checked');
+    let is_oc = $(this).parent().parent().find(".reply_oc").is(':checked');
+    let keywords = $(this).parent().parent().find(".reply_keywords").val();
+    let shields = $(this).parent().parent().find(".reply_shields").val();
+    let rs = $(this).parent().parent().find(".reply_rs").val();
+    /*    $(".radd-mask").show();*/
     $(".radd-body").find(".reply_open_i").prop('checked', is_open);
+    $(".radd-body").find(".reply_open_i").attr("z-index", index);
+    $(".radd-body").find(".reply_open_i").attr("z-name", "reply_open_" + index);
+
     $(".radd-body").find(".reply_oc_i").prop('checked', is_oc);
+    $(".radd-body").find(".reply_oc_i").attr("z-index", index);
+    $(".radd-body").find(".reply_oc_i").attr("z-name", "reply_oc_" + index);
+
     $(".radd-body").find(".reply_keywords_i").val(keywords);
+    $(".radd-body").find(".reply_keywords_i").attr("z-index", index);
+    $(".radd-body").find(".reply_keywords_i").attr("z-name", "reply_keywords_" + index);
+
     $(".radd-body").find(".reply_shields_i").val(shields);
+    $(".radd-body").find(".reply_shields_i").attr("z-index", index);
+    $(".radd-body").find(".reply_shields_i").attr("z-name", "reply_shields_" + index);
+
     $(".radd-body").find(".reply_rs_i").val(rs);
+    $(".radd-body").find(".reply_rs_i").attr("z-index", index);
+    $(".radd-body").find(".reply_rs_i").attr("z-name", "reply_rs_" + index);
+
     $(".radd-body").find(".reply_delete_i").attr("z-index", index);
+});
+$(document).on('input propertychange', '.reply-sync', function (e) {
+    let index = $(this).attr("z-index");
+    let z_name = $(this).attr("z-name");
+    if (z_name.startsWith("reply_open_")) {
+        $(".replys-ul").children("li").eq(index).find(".reply_open").prop('checked', $(this).is(':checked'));
+    } else if (z_name.startsWith("reply_oc_")) {
+        $(".replys-ul").children("li").eq(index).find(".reply_oc").prop('checked', $(this).is(':checked'));
+    } else if (z_name.startsWith("reply_keywords_")) {
+        $(".replys-ul").children("li").eq(index).find(".reply_keywords").val($(this).val());
+    } else if (z_name.startsWith("reply_shields_")) {
+        $(".replys-ul").children("li").eq(index).find(".reply_shields").val($(this).val());
+    } else if (z_name.startsWith("reply_rs_")) {
+        $(".replys-ul").children("li").eq(index).find(".reply_rs").val($(this).val());
+    }
+    if ($(".auto_save_set").is(':checked')) {
+        method.saveSet();
+    } else {
+    }
 });
 $(document).on('click', '.reply_delete_i', function (e) {
     let index = $(this).attr("z-index");
     $(".replys-ul").children("li").eq(index).remove();
     e.stopPropagation();
-    $(".radd-mask").hide();
+    $('#reply-model-edit').modal('hide');
+    /*    $(".radd-mask").hide();*/
 });
 $(document).on('click', '.btn-closeri', function () {
-    if ($(".radd-mask").is(":visible")) {
-        let index = $(this).parent().parent().find(".reply_delete_i").attr("z-index");
-        let is_open = $(this).parent().parent().find(".reply_open_i").is(':checked');
-        let is_oc = $(this).parent().parent().find(".reply_oc_i").is(':checked');
-        let keywords = $(this).parent().parent().find(".reply_keywords_i").val();
-        let shields = $(this).parent().parent().find(".reply_shields_i").val();
-        let rs = $(this).parent().parent().find(".reply_rs_i").val();
-        $(".replys-ul").children("li").eq(index).find(".reply_open").prop('checked', is_open);
-        $(".replys-ul").children("li").eq(index).find(".reply_oc").prop('checked', is_oc);
-        $(".replys-ul").children("li").eq(index).find(".reply_keywords").val(keywords);
-        $(".replys-ul").children("li").eq(index).find(".reply_shields").val(shields);
-        $(".replys-ul").children("li").eq(index).find(".reply_rs").val(rs);
-        if (keywords === null || keywords === "" || rs === null || rs === "") {
-            alert("关键字和回复语句都不能为空！！！");
-            return;
-        }
-        $(".radd-mask").hide();
-    }
+    /*    alert("1")*/
+    /*    if ($("#reply-model-edit").is(":visible")) {*/
+    let index = $(this).parent().parent().find(".reply_delete_i").attr("z-index");
+    let is_open = $(this).parent().parent().find(".reply_open_i").is(':checked');
+    let is_oc = $(this).parent().parent().find(".reply_oc_i").is(':checked');
+    let keywords = $(this).parent().parent().find(".reply_keywords_i").val();
+    let shields = $(this).parent().parent().find(".reply_shields_i").val();
+    let rs = $(this).parent().parent().find(".reply_rs_i").val();
+    $(".replys-ul").children("li").eq(index).find(".reply_open").prop('checked', is_open);
+    $(".replys-ul").children("li").eq(index).find(".reply_oc").prop('checked', is_oc);
+    $(".replys-ul").children("li").eq(index).find(".reply_keywords").val(keywords);
+    $(".replys-ul").children("li").eq(index).find(".reply_shields").val(shields);
+    $(".replys-ul").children("li").eq(index).find(".reply_rs").val(rs);
+    /*       if (keywords === null || keywords === "" || rs === null || rs === "") {
+               alert("关键字和回复语句都不能为空！！！");
+               return;
+           }*/
+    $('#reply-model-edit').modal('hide');
+    /*        $(".radd-mask").hide();*/
+    /*    }*/
 });
 $(document).on('click', '#checkupdate', function () {
+
     $(".tips-wrap").show();
     $(".tips-t").html("<span>少女祈祷中<img src='../img/loading-1.gif'></span>");
     $.when(method.checkUpdate()).done(function (data) {
         let num = Number(data.result.status);
         if (num === 0) {
-            $("#edition_content").html(`有新版本(最新版本<span style="color:red;">:`+data.result.edition+`</span>)更新，请前往<a href="https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/`+data.result.edition+`">github</a>获取更新`);
+            $("#edition_content").html(`有新版本(最新版本<span style="color:red;">:` + data.result.edition + `</span>)更新，请前往<a href="https://github.com/BanqiJane/Bilibili_Danmuji/releases/tag/` + data.result.edition + `">github</a>获取更新`);
         } else if (num === 1) {
             $("#edition_content").html("当前为最新版本，无需更新");
         } else {
@@ -661,9 +520,16 @@ $(document).on('click', '.danmu-tips-li', function (e) {
         $(".block-input").attr("uid", uid);
         $(".block-input").val("");
         $(".block-input").attr("placeholder", "禁言(" + uname + "-" + uid + ")" + "-禁言时间为1-720小时");
-        $(".block-mask").show();
+        // $(".block-model").modal('show');
     } else {
 
+    }
+});
+$(document).on('click', '.black_flag_parent', function () {
+    if ($(this).is(':checked')) {
+        $(".black_flag_child").prop('checked', false);
+    } else {
+        $(".black_flag_child").prop('checked', true);
     }
 });
 const danmuku = {
@@ -672,19 +538,36 @@ const danmuku = {
         if (t === 0) {
             return `<span class="danmu-type">弹幕</span>`;
         } else if (t === 1) {
-            return `<span class="danmu-type">礼物</span>`;
+            return `<span class="danmu-type danmu-type-gift">礼物</span>`;
         } else if (t === 2) {
-            return `<span class="danmu-type">留言</span>`;
+            return `<span class="danmu-type danmu-type-superchat">留言</span>`;
         } else {
-            return `<span class="danmu-type">消息</span>`;
+            return `<span class="danmu-type danmu-type-msg">消息</span>`;
         }
     },
-    time: function (d) {
-        if(String(d.timestamp).length==10)d.timestamp=d.timestamp*1000;
-        return `<span class="danmu-time">` + format(d.timestamp, false) + `</span>`;
+    time: function (d,t) {
+        if (String(d.timestamp).length == 10) d.timestamp = d.timestamp * 1000;
+        if(t===0) {
+            return `<span class="danmu-time">` + format(d.timestamp, false) + `</span>`;
+        }else if(t===1){
+            return `<span class="danmu-time danmu-time-gift">` + format(d.timestamp, false) + `</span>`;
+        }else if(t===2){
+            return `<span class="danmu-time danmu-time-superchat">` + format(d.timestamp, false) + `</span>`;
+        }else{
+            return `<span class="danmu-time danmu-time-msg">` + format(d.timestamp, false) + `</span>`;
+        }
     },
-    only_time: function (d) {
-        return `<span class="danmu-time">` + format(d, false) + `</span>`;
+    only_time: function (d,t) {
+        if (String(d.timestamp).length == 10) d.timestamp = d.timestamp * 1000;
+        if(t===0) {
+            return `<span class="danmu-time">` + format(d, false) + `</span>`;
+        }else if(t===1){
+            return `<span class="danmu-time danmu-time-gift">` + format(d, false) + `</span>`;
+        }else if(t===2){
+            return `<span class="danmu-time danmu-time-superchat">` + format(d, false) + `</span>`;
+        }else{
+            return `<span class="danmu-time danmu-time-msg">` + format(d, false) + `</span>`;
+        }
     },
     medal: function (d) {
         if (d.medal_name !== null && d.medal_name !== '') {
@@ -745,10 +628,10 @@ const danmuku = {
         }
     },
     gmessage: function (d) {
-        return `<span class="danmu-text">` + d.action + `了 ` + d.giftName + ` x ` + d.num + `</span>`;
+        return `<span class="danmu-text">` + d.action + `了 ` + `<span class="danmu-text-gift">`+d.giftName+`</span>` + ` x ` + d.num + `</span>`;
     },
     stext: function (d) {
-        return `<span class="danmu-text">留言了` + d.time + `秒说:` + d.message + `</span>`;
+        return `<span class="danmu-text">留言了` + d.time + `秒说:` + `<span class="danmu-text-superchat">`+d.message+`</span>` + `</span>`;
     },
     block_type: function (d) {
         if (d.operator === 1) {
@@ -758,30 +641,37 @@ const danmuku = {
         }
     },
     tips: function (d) {
-        return `<div class="danmu-tips" uid="` + d.uid + `"><ul class="danmu-tips-ul"><li class="danmu-tips-li">禁言</li><li class="danmu-tips-li">查看</li><li class="danmu-tips-li">关闭</li></ul></div>`;
+        return `<div class="danmu-tips" uid="` + d.uid + `"><ul class="danmu-tips-ul"><li class="danmu-tips-li" data-bs-toggle="modal" data-bs-target="#block-model">禁言</li><li class="danmu-tips-li">查看</li><li class="danmu-tips-li">关闭</li></ul></div>`;
     },
     danmu: function (type, d) {
+        var type_index = 0;
         switch (type) {
             case "danmu":
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(0) + danmuku.time(d) + danmuku.medal(d) + danmuku.guard(d) + danmuku.vip(d) + danmuku.manager(d) + danmuku.ul(d) + danmuku.dname(d) + danmuku.dmessage(d) + danmuku.tips(d) + `</div>`;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.time(d,type_index) + danmuku.medal(d) + danmuku.guard(d) + danmuku.vip(d) + danmuku.manager(d) + danmuku.ul(d) + danmuku.dname(d) + danmuku.dmessage(d) + danmuku.tips(d) + `</div>`;
             case "gift":
+                type_index=1;
                 d.timestamp = d.timestamp * 1000;
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(1) + danmuku.time(d) + danmuku.gguard(d) + danmuku.gname(d) + danmuku.gmessage(d) + danmuku.tips(d) + `</div>`;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.time(d,type_index) + danmuku.gguard(d) + danmuku.gname(d) + danmuku.gmessage(d) + danmuku.tips(d) + `</div>`;
             case "superchat":
+                type_index=2;
                 d.start_time = d.start_time * 1000;
                 d.timestamp = d.start_time;
                 d.uguard = d.user_info.guard_level;
                 d.manager = d.user_info.manager;
                 d.uname = d.user_info.uname;
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(2) + danmuku.time(d) + danmuku.dname(d) + danmuku.stext(d) + danmuku.tips(d) + `</div>`;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.time(d,type_index) + danmuku.dname(d) + danmuku.stext(d) + danmuku.tips(d) + `</div>`;
             case "welcomeVip":
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(4) + danmuku.only_time(getTimestamp()) + `<span class="danmu-text">欢迎</span><a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">老爷进入直播间</span>` + danmuku.tips(d) + `</div>`;
+                type_index=4;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.only_time(getTimestamp(),type_index) + `<span class="danmu-text">欢迎</span><a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">老爷进入直播间</span>` + danmuku.tips(d) + `</div>`;
             case "welcomeGuard":
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(4) + danmuku.only_time(getTimestamp()) + `<span class="danmu-text">欢迎</span><a href="javascript:;"><span class="danmu-name">` + d.username + `</span></a><span class="danmu-text">舰长进入直播间</span>` + danmuku.tips(d) + `</div>`;
+                type_index=4;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.only_time(getTimestamp(),type_index) + `<span class="danmu-text">欢迎</span><a href="javascript:;"><span class="danmu-name">` + d.username + `</span></a><span class="danmu-text">舰长进入直播间</span>` + danmuku.tips(d) + `</div>`;
             case "block":
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(4) + danmuku.only_time(getTimestamp()) + `<a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">已被` + danmuku.block_type(d) + `禁言</span>` + danmuku.tips(d) + `</div>`;
+                type_index=4;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.only_time(getTimestamp(),type_index) + `<a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">已被` + danmuku.block_type(d) + `禁言</span>` + danmuku.tips(d) + `</div>`;
             case "follow":
-                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(4) + danmuku.time(d) + `<a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">关注了直播间</span>` + danmuku.tips(d) + `</div>`;
+                type_index=4;
+                return `<div class="danmu-child" uid="` + d.uid + `">` + danmuku.type(type_index) + danmuku.time(d,type_index) + `<a href="javascript:;"><span class="danmu-name">` + d.uname + `</span></a><span class="danmu-text">关注了直播间</span>` + danmuku.tips(d) + `</div>`;
             default:
                 return "";
         }
@@ -791,6 +681,306 @@ const publicData = {
     set: {},
 }
 const method = {
+    saveSet: function () {
+        let c1 = false;
+        let c2 = false;
+        let c3 = false;
+        let c4 = false;
+        let c5 = false;
+        let c6 = false;
+        let c7 = false;
+        let c8 = false;
+        let c9 = false;
+        let c10 = false;
+        let c11 = false;
+        let set = {
+            "thank_gift": {
+                "giftStrings": [],
+                "thankGiftRuleSets": [],
+                "codeStrings": [],
+            },
+            "advert": {},
+            "follow": {},
+            "reply": {"autoReplySets": []},
+            "clock_in": {},
+            "welcome": {},
+            "auto_gift": {},
+            "privacy": {},
+            "black": {
+                "names": [],
+                "uids": []
+            }
+        };
+        set.is_auto = $(".is_autoStart").is(
+            ':checked');
+        set.win_auto_openSet = $(".win_auto_openSet").is(':checked');
+        set.auto_save_set = $(".auto_save_set").is(':checked');
+        set.is_barrage = $(".is_barrage").is(
+            ':checked');
+        set.is_barrage_guard = $(".is_barrage_guard").is(
+            ':checked');
+        set.is_barrage_vip = $(".is_barrage_vip").is(
+            ':checked');
+        set.is_barrage_manager = $(".is_barrage_manager").is(':checked');
+        set.is_barrage_medal = $(".is_barrage_medal").is(':checked');
+        set.is_barrage_ul = $(".is_barrage_ul").is(':checked');
+        set.is_barrage_anchor_shield = $(".is_barrage_anchor_shield").is(':checked');
+        set.is_block = $(".is_block").is(':checked');
+        set.is_cmd = $(".is_cmd").is(':checked');
+        set.is_gift = $(".is_gift").is(':checked');
+        set.is_gift_free = $(".is_gift_free").is(':checked');
+        set.is_welcome_ye = $(".is_welcome").is(':checked');
+        set.is_welcome_all = $(".is_welcome_all").is(':checked');
+        set.is_follow_dm = $(".is_follow").is(':checked');
+        set.is_log = $(".is_log").is(':checked');
+        set.is_online = $(".is_online").is(':checked');
+        /* 管理登录 */
+        set.is_manager_login = $(".is_manager_login").is(':checked');
+        set.manager_maxSize = Number($(".manager_maxSize").val());
+        //密码就不set给前端了
+        set.manager_key = $(".manager_key").val();
+        /* 管理结束*/
+        set.is_sh = $(".is_sh").is(':checked');
+        set.is_dosign = $(".is_dosign").is(':checked');
+        set.sign_time = method.time_parse($(".sign_time").val());
+        set.thank_gift.is_open = $(".thankgift_is_open").is(':checked');
+        set.thank_gift.is_live_open = $(".thankgift_is_live_open").is(
+            ':checked');
+        set.thank_gift.is_tx_shield = $(".thankgift_is_tx_shield").is(
+            ':checked');
+        set.thank_gift.is_num = $(".thankgift_is_num").is(':checked');
+        set.thank_gift.shield_status = Number($(".thankgift_shield_status")
+            .find("option:selected").val()) - 1;
+        set.thank_gift.list_gift_shield_status = Number($(".thankgift_list_gift_shield_status")
+            .find("option:selected").val()) - 1;
+        set.thank_gift.list_people_shield_status = Number($(".thankgift_list_people_shield_status")
+            .find("option:selected").val()) - 1;
+        set.thank_gift.giftStrings = method.giftStrings_handle(set.thank_gift.giftStrings, $(".thankgift_shield").val());
+        if ($(".shieldgifts-tbody tr").length > 0) {
+            let thankGiftRuleSet = {};
+            $(".shieldgifts-tbody tr").each(function (i, v) {
+                thankGiftRuleSet.is_open = $(".shieldgifts_open").eq(i).is(':checked');
+                thankGiftRuleSet.gift_name = $(".shieldgifts_name").eq(i).val();
+                thankGiftRuleSet.status = Number($(".shieldgifts_status").eq(i).find("option:selected").val()) - 1;
+                thankGiftRuleSet.num = Number($(".shieldgifts_num").eq(i).val());
+                set.thank_gift.thankGiftRuleSets.push(thankGiftRuleSet);
+                thankGiftRuleSet = {};
+            });
+        }
+        if ($(".replys-ul li").length > 0) {
+            let autoReplySet = {};
+            $(".replys-ul li").each(function (i, v) {
+                autoReplySet.is_open = $(".reply_open").eq(i).is(':checked');
+                autoReplySet.is_accurate = $(".reply_oc").eq(i).is(':checked');
+                let keywords = [];
+                let shields = [];
+                var keyword = $(".reply_keywords").eq(i).val();
+                var shield = $(".reply_shields").eq(i).val();
+                var reply = $(".reply_rs").eq(i).val();
+                if (keyword === null || keyword === "") {
+                    ;
+                } else {
+                    autoReplySet.keywords = method.giftStrings_handle(keywords, keyword);
+                    autoReplySet.shields = method.giftStrings_handle(shields, shield);
+                    autoReplySet.reply = reply;
+                    set.reply.autoReplySets.push(autoReplySet);
+                }
+                autoReplySet = {};
+            });
+
+        }
+        set.thank_gift.thank_status = Number($(".thankgift_thank_status")
+            .find("option:selected").val()) - 1;
+        set.thank_gift.num = Number($(".thankgift_num").val());
+        set.thank_gift.delaytime = Number($(".thankgift_delaytime").val());
+        set.thank_gift.thank = $(".thankgift_thank").val();
+        set.thank_gift.is_guard_report = $(".thankgift_is_guard_report")
+            .is(':checked');
+        set.thank_gift.is_guard_local = $(".thankgift_is_guard_local")
+            .is(':checked');
+        set.thank_gift.is_gift_code = $(".thankgift_is_gift_code")
+            .is(':checked');
+        set.thank_gift.codeStrings = method.codeStrings_handle(set.thank_gift.codeStrings, $(".thankgift_codeStrings").val());
+        set.thank_gift.report = $(".thankgift_report").val();
+        set.thank_gift.report_barrage = $(".thankgift_barrageReport").val();
+        set.advert.is_open = $(".advert_is_open").is(':checked');
+        set.advert.is_live_open = $(".advert_is_live_open").is(':checked');
+        set.advert.status = Number($(".advert_status").find(
+            "option:selected").val()) - 1;
+        set.advert.time = Number($(".advert_time").val());
+        set.advert.adverts = $(".advert_adverts").val();
+        set.follow.is_open = $(".follow_is_open").is(':checked');
+        set.follow.is_live_open = $(".follow_is_live_open").is(':checked');
+        set.follow.is_tx_shield = $(".follow_tx_shield").is(':checked');
+        set.follow.num = Number($(".follow_num").val());
+        set.follow.follows = $(".follow_follows").val();
+        set.follow.delaytime = Number($(".thankfollow_delaytime").val());
+        set.welcome.is_open = $(".welcome_is_open").is(':checked');
+        set.welcome.is_live_open = $(".welcome_is_live_open").is(':checked');
+        set.welcome.is_tx_shield = $(".welcome_tx_shield").is(':checked');
+        set.welcome.num = Number($(".welcome_num").val());
+        set.welcome.welcomes = $(".welcome_welcomes").val();
+        set.welcome.delaytime = Number($(".thankwelcome_delaytime").val());
+        set.welcome.list_people_shield_status = Number($(".welcome_list_people_shield_status")
+            .find("option:selected").val()) - 1;
+        set.reply.is_open = $(".replys_is_open").is(':checked');
+        set.reply.is_live_open = $(".replys_is_live_open").is(':checked');
+        set.reply.time = Number($(".replys_time").val());
+        set.reply.list_people_shield_status = Number($(".replys_list_people_shield_status")
+            .find("option:selected").val()) - 1;
+        set.clock_in.is_open = $(".is_clockin").is(':checked');
+        set.clock_in.time = method.time_parse($(".clockin_time").val());
+        set.clock_in.barrage = $(".clockin_barrage").val();
+        set.auto_gift.is_open = $(".is_autoGift_open").is(':checked');
+        set.auto_gift.time = method.time_parse($(".autoGift_time").val());
+        set.auto_gift.room_id = $(".autoGift_roomids").val();
+        set.privacy.is_open = $(".is_privacy_open").is(':checked');
+        set.privacy.small_heart_url = $(".privacy_heart_url").val();
+        set.black.fuzzy_query = $(".is_fuzzy_query").is(':checked');
+        set.black.all = $(".is_black_all").is(':checked');
+        set.black.thank_gift = $(".is_black_gift").is(':checked');
+        set.black.thank_welcome = $(".is_black_welcome").is(':checked');
+        set.black.thank_follow = $(".is_black_follow").is(':checked');
+        set.black.auto_reply = $(".is_black_reply").is(':checked');
+        set.black.names = method.giftStrings_handle(set.black.names, $(".black_names").val());
+        set.black.uids = method.giftStrings_handle(set.black.uids, $(".black_uids").val());
+        /*处理验证?*/
+        if (set.clock_in.is_open) {
+            set.clock_in.sign_day = (new Date()).getTime();
+        }
+        if ($(".follow_is_open").is(':checked')) {
+            if ($(".follow_follows").val().trim() !== null
+                && $(".follow_follows").val().trim() !== "") {
+            } else {
+                c1 = true;
+                method.delay_method(".notice-message", "感谢关注语不能为空");
+                alert("感谢关注语不能为空");
+            }
+            if (Number($(".follow_num").val()) > 0) {
+
+            } else {
+                c5 = true;
+                method.delay_method(".notice-message", "感谢关注必须大于0");
+                alert("感谢关注必须大于0");
+            }
+        }
+        if ($(".welcome_is_open").is(':checked')) {
+            if ($(".welcome_welcomes").val().trim() !== null
+                && $(".welcome_welcomes").val().trim() !== "") {
+            } else {
+                c9 = true;
+                method.delay_method(".notice-message", "感谢欢迎语不能为空");
+                alert("感谢欢迎语不能为空");
+            }
+            if (Number($(".welcome_num").val()) > 0) {
+
+            } else {
+                c10 = true;
+                method.delay_method(".notice-message", "感谢欢迎必须大于0");
+                alert("感谢欢迎必须大于0");
+            }
+        }
+        if ($(".thankgift_is_open").is(':checked')) {
+            if ($(".thankgift_thank").val().trim() !== null
+                && $(".thankgift_thank").val().trim() !== "") {
+
+            } else {
+                c2 = true;
+                method.delay_method(".notice-message", "感谢礼物语不能为空");
+                alert("感谢礼物语不能为空");
+            }
+            if ($(".thankgift_is_guard_report").is(':checked')) {
+                if ($(".thankgift_report").val().trim() !== null
+                    && $(".thankgift_report").val().trim() !== "") {
+                    if ($(".thankgift_report").val().length >= 500) {
+                        c6 = true;
+                        method.delay_method(".notice-message",
+                            "上舰回复语不能超过500字");
+                        alert("上舰回复语不能超过500字");
+                    }
+                } else {
+                    c3 = true;
+                    method.delay_method(".notice-message", "上舰回复语不能为空");
+                    alert("上舰回复语不能为空");
+                }
+            }
+        }
+        if ($(".advert_is_open").is(':checked')) {
+            if ($(".advert_adverts").val().trim() !== null
+                && $(".advert_adverts").val().trim() !== "") {
+            } else {
+                c4 = true;
+                method.delay_method(".notice-message", "广告语不能为空");
+                alert("广告语不能为空");
+            }
+
+        }
+        $(".shieldgifts-tbody").children("tr").each(function (i, v) {
+            if ($(".shieldgifts_name").eq(i).val().trim() == "") {
+                c7 = true;
+            }
+        })
+        if (c7) {
+            method.delay_method(".notice-message", "自定义规则不能为空");
+            alert("自定义规则不能为空");
+        }
+        $(".replys-ul").children("li").each(function (i, v) {
+            if ($(".reply_keywords").eq(i).val() === "") {
+                // c8 = true;
+                // v.remove();
+                method.delay_method(".notice-message", "自动回复姬的关键字不能为空！！！");
+            } else {
+
+            }
+        });
+        if ($(".is_autoGift_open").is(':checked')) {
+            if ($(".autoGift_roomids").val() == null || $(".autoGift_roomids").val().trim() === "") {
+                c11 = true;
+                method.delay_method(".notice-message", "礼物自动赠送姬房间号不能为空！！！");
+                alert("礼物自动赠送姬房间号不能为空！！！");
+            }
+        }
+        if ($(".card-body").find(".logined").length > 0) {
+            if (!c1 && !c2 && !c3 && !c4 && !c5 && !c6 && !c7 && !c8 && !c9 && !c10 && !c11) {
+                publicData.set = method.initSet(set);
+                var edition = $("#checkupdate").attr("data-version");
+                set.edition = edition;
+                var result = method.sendSet(set);
+                if (result==1) {
+                    method.delay_method(".success-message", "保存配置成功");
+                    if (!publicData.set.auto_save_set) {
+                        alert("修改配置成功");
+                    }
+                }else if(result==2){
+                    location.reload();
+                }else {
+                    method.delay_method(".notice-message", "修改配置失败");
+                    if (!publicData.set.auto_save_set) {
+                        alert("修改配置失败");
+                    }
+                }
+            } else {
+                method.delay_method(".notice-message", "修改配置失败");
+                if (!publicData.set.auto_save_set) {
+                    alert("修改配置失败")
+                }
+            }
+        } else {
+            method.initSet(set);
+            var edition = $("#checkupdate").attr("data-version");
+            set.edition = edition;
+            var result = method.sendSet(set);
+            if (result == 1) {
+                method.delay_method(".success-message", "保存配置成功");
+                alert("修改配置成功");
+            }else if(result==2){
+                location.reload();
+            }else {
+                method.delay_method(".notice-message", "修改配置失败");
+                alert("修改配置失败");
+            }
+        }
+    },
     getSet: function () {
         "use strict";
         let json = null;
@@ -810,7 +1000,7 @@ const method = {
     },
     sendSet: function (set) {
         "use strict";
-        let flag = false;
+        let flag = 0;
         $.ajax({
             url: '../sendSet',
             data: {
@@ -833,7 +1023,11 @@ const method = {
         if (set != null) {
             $(".is_autoStart").prop('checked',
                 set.is_auto);
-            $(".win_auto_openSet").prop('checked',set.win_auto_openSet);
+            $(".auto_save_set").prop('checked',
+                set.auto_save_set);
+            $(".win_auto_openSet").prop('checked', set.win_auto_openSet);
+            $(".is_barrage").prop('checked',
+                set.is_barrage);
             $(".is_barrage_guard").prop('checked',
                 set.is_barrage_guard);
             $(".is_barrage_vip").prop('checked',
@@ -842,11 +1036,13 @@ const method = {
             $(".is_cmd").prop('checked', set.is_cmd);
             $(".is_barrage_medal").prop('checked', set.is_barrage_medal);
             $(".is_barrage_ul").prop('checked', set.is_barrage_ul);
+            $(".is_barrage_anchor_shield").prop('checked', set.is_barrage_anchor_shield);
             $(".is_block").prop('checked', set.is_block);
             $(".is_gift").prop('checked', set.is_gift);
-            $(".is_welcome").prop('checked', set.is_welcome);
+            $(".is_gift_free").prop('checked', set.is_gift_free);
+            $(".is_welcome").prop('checked', set.is_welcome_ye);
             $(".is_welcome_all").prop('checked', set.is_welcome_all);
-            $(".is_follow").prop('checked', set.is_follow);
+            $(".is_follow").prop('checked', set.is_follow_dm);
             $(".is_log").prop('checked', set.is_log);
             /* 登录暗号                                      */
             $(".is_manager_login").prop('checked', set.is_manager_login);
@@ -865,8 +1061,12 @@ const method = {
                 set.thank_gift.is_num);
             $(".thankgift_shield_status").find("option").eq(
                 set.thank_gift.shield_status).prop('selected', true);
-            $(".thankgift_shield").val(method.giftStrings_metod(set.thank_gift.giftStrings));
-            $(".thankgift_codeStrings").val(method.codeStrings_metod(set.thank_gift.codeStrings));
+            $(".thankgift_list_gift_shield_status").find("option").eq(
+                set.thank_gift.list_gift_shield_status).prop('selected', true);
+            $(".thankgift_list_people_shield_status").find("option").eq(
+                set.thank_gift.list_people_shield_status).prop('selected', true);
+            $(".thankgift_shield").val(method.giftStrings_method(set.thank_gift.giftStrings));
+            $(".thankgift_codeStrings").val(method.codeStrings_method(set.thank_gift.codeStrings));
             method.shieldgifts_each(set.thank_gift.thankGiftRuleSets);
             method.replys_each(set.reply.autoReplySets);
             // $(".thankgift_thankGiftRuleSets").val(
@@ -902,30 +1102,65 @@ const method = {
             $(".welcome_num").val(set.welcome.num);
             $(".welcome_welcomes").val(set.welcome.welcomes);
             $(".thankwelcome_delaytime").val(set.welcome.delaytime);
+            $(".welcome_list_people_shield_status").find("option").eq(
+                set.welcome.list_people_shield_status).prop('selected', true);
             $(".replys_is_open").prop('checked',
                 set.reply.is_open);
             $(".replys_is_live_open").prop('checked',
                 set.reply.is_live_open);
             $(".replys_time").val(set.reply.time);
+            $(".replys_list_people_shield_status").find("option").eq(
+                set.reply.list_people_shield_status).prop('selected', true);
             $(".is_clockin").prop('checked', set.clock_in.is_open);
             $(".clockin_time").val(set.clock_in.time);
             $(".clockin_barrage").val(set.clock_in.barrage);
-            $(".is_autoGift_open").prop('checked',set.auto_gift.is_open);
+            $(".is_autoGift_open").prop('checked', set.auto_gift.is_open);
             $(".autoGift_time").val(set.auto_gift.time);
             $(".autoGift_roomids").val(set.auto_gift.room_id);
+            $(".is_privacy_open").prop('checked', set.privacy.is_open);
+            $(".privacy_heart_url").val(set.privacy.small_heart_url);
+            $(".is_fuzzy_query").prop('checked', set.black.fuzzy_query);
+            $(".is_black_all").prop('checked', set.black.all);
+            $(".is_black_gift").prop('checked', set.black.thank_gift);
+            $(".is_black_follow").prop('checked', set.black.thank_follow);
+            $(".is_black_welcome").prop('checked', set.black.thank_welcome);
+            $(".is_black_reply").prop('checked', set.black.auto_reply);
+            $(".black_names").val(method.giftStrings_method(set.black.names));
+            $(".black_uids").val(method.giftStrings_method(set.black.uids));
+
 
             /* 处理？ */
             if (Number($(".thankgift_shield_status")
                 .children("option:selected").val()) !== 1) {
                 $(".thankgift_shield").hide();
+                $(".thankgift_list_gift_shield_status").hide();
             } else {
                 $(".thankgift_shield").show();
+                $(".thankgift_list_gift_shield_status").show();
             }
             if (Number($(".thankgift_shield_status")
                 .children("option:selected").val()) !== 4) {
                 $("#gift-shield-btn").hide();
             } else {
                 $("#gift-shield-btn").show();
+            }
+            if (Number($(".thankgift_list_gift_shield_status").children(
+                "option:selected").val()) !== 1) {
+                //白名单
+                $(".thankgift_shield").attr('placeholder',
+                    "白名单模式：自定义通过礼物名字，以 中文逗号(，)为分割；示例：\n辣条，亿圆，友谊的小船\n注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用\n默认黑名单，相反白名单（仅感谢填写的）");
+                $(".thankgift_shield")
+                    .attr('title',
+                        '白名单模式：这里填写自定义通过礼物名字，以 中文逗号(，)为分割；示例：<br/>辣条，亿圆，友谊的小船<br/><span class=\'red-font\'>注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用<br/>默认黑名单，相反白名单（仅感谢填写的）</span>');
+
+            } else {
+                //黑名单
+                $(".thankgift_shield").attr('placeholder',
+                    "黑名单模式：自定义屏蔽礼物名字，以 中文逗号(，)为分割；示例：\n辣条，亿圆，友谊的小船\n注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用\n默认黑名单，相反白名单（仅感谢填写的）");
+                $(".thankgift_shield")
+                    .attr('title',
+                        '黑名单模式：这里填写自定义屏蔽礼物名字，以 中文逗号(，)为分割；示例：<br/>辣条，亿圆，友谊的小船<br/><span class=\'red-font\'>注意：为空那时候是什么都不屏蔽，仅在自定义模式下有用<br/>默认黑名单，相反白名单（仅感谢填写的）</span>');
+
             }
             switch (Number($(".thankgift_thank_status").children(
                 "option:selected").val())) {
@@ -992,7 +1227,7 @@ const method = {
             }
             if ($(".is_dosign").is(':checked')) {
                 $(".sign_time").attr("disabled", false);
-            }else{
+            } else {
                 $(".sign_time").attr("disabled", true);
             }
             if (!$(".card-body").find(".logined").length > 0) {
@@ -1004,6 +1239,8 @@ const method = {
                 $(".thankgift_is_live_open").attr("disabled", true);
                 $(".thankgift_is_tx_shield").attr("disabled", true);
                 $(".thankgift_shield_status").attr("disabled", true);
+                $(".thankgift_list_gift_shield_status").attr("disabled", true);
+                $(".thankgift_list_people_shield_status").attr("disabled", true);
                 $(".thankgift_shield").attr("disabled", true);
                 $(".thankgift_thankGiftRuleSets").attr("disabled", true);// test
                 $(".thankgift_thank_status").attr("disabled", true);
@@ -1033,27 +1270,40 @@ const method = {
                 $(".welcome_welcomes").attr("disabled", true);
                 $(".welcome_tx_shield").attr("disabled", true);
                 $(".thankwelcome_delaytime").attr("disabled", true);
+                $(".welcome_list_people_shield_status").attr("disabled", true);
                 $(".shieldgift_delete").attr("disabled", true);
                 $(".thankgift_barrageReport").attr("disabled", true);
                 $(".thankgift_is_num").attr("disabled", true);
                 $(".replys_is_open").attr("disabled", true);
                 $(".replys_is_live_open").attr("disabled", true);
                 $(".replys_time").attr("disabled", true);
+                $(".replys_list_people_shield_status").attr("disabled", true);
                 $("#replys-btn").attr("disabled", true);
                 $(".is_clockin").attr("disabled", true);
                 $(".clockin_time").attr("disabled", true);
                 $(".clockin_barrage").attr("disabled", true);
+                $(".is_autoGift_open").attr("disabled", true);
+                $(".autoGift_time").attr("disabled", true);
+                $(".autoGift_roomids").attr("disabled", true);
+                $(".is_fuzzy_query").attr("disabled", true);
+                $(".is_black_all").attr("disabled", true);
+                $(".is_black_gift").attr("disabled", true);
+                $(".is_black_welcome").attr("disabled", true);
+                $(".is_black_follow").attr("disabled", true);
+                $(".is_black_reply").attr("disabled", true);
+                $(".black_names").attr("disabled", true);
+                $(".black_uids").attr("disabled", true);
             }
         }
         return set;
     },
-    time_parse:function (t){
-      if(t==null||t.trim()=="")return "00:30:00";
-      let ts = t.split(":");
-      if(ts.length==2){
-          t = t + ":00";
-      }
-      return t;
+    time_parse: function (t) {
+        if (t == null || t.trim() == "") return "00:30:00";
+        let ts = t.split(":");
+        if (ts.length == 2) {
+            t = t + ":00";
+        }
+        return t;
     },
     wrap_replace: function (d) {
         "use strict";
@@ -1074,17 +1324,17 @@ const method = {
             $(e).html(s);
             setTimeout(function () {
                 $(e).hide();
-            }, 3000);
+            }, 5000);
         }
     },
-    giftStrings_metod: function (lists) {
+    giftStrings_method: function (lists) {
         let s = "";
         if (lists != null) {
             s = lists.join("，");
         }
         return s;
     },
-    codeStrings_metod: function (lists) {
+    codeStrings_method: function (lists) {
         let s = "";
         if (lists != null) {
             s = lists.join("\n");
@@ -1118,7 +1368,8 @@ const method = {
             } else {
                 lists.push(s);
             }
-        };
+        }
+        ;
         return lists;
     },
     shieldgifts_each: function (lists) {
@@ -1127,11 +1378,11 @@ const method = {
             for (let i in lists) {
                 $(".shieldgifts-tbody")
                     .append(
-                        "<tr><td><input type='checkbox' class='shieldgifts_open' data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启' data-original-title='是否开启'></td><td><input class='small-input shieldgifts_name' value='"
+                        "<tr><td><input type='checkbox' class='shieldgifts_open live-save' data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启' data-original-title='是否开启'></td><td><input class='small-input shieldgifts_name live-save' value='"
                         + lists[i].gift_name
-                        + "' placeholder='礼物名称' data-bs-toggle='tooltip' data-bs-placement='top' title='礼物名称' data-bs-html='true' data-original-title='礼物名称'></td><td><select class='custom-select-sm shieldgifts_status' data-bs-toggle='tooltip' data-bs-placement='top' title='选择类型' data-bs-html='true' data-original-title='选择类型'><option value='1' selected='selected'>数量</option><option value='2'>瓜子</option></select></td><td><input type='number' min='0' value='"
+                        + "' placeholder='礼物名称' data-bs-toggle='tooltip' data-bs-placement='top' title='礼物名称' data-bs-html='true' data-original-title='礼物名称'></td><td><select class='custom-select-sm shieldgifts_status live-save' data-bs-toggle='tooltip' data-bs-placement='top' title='选择类型' data-bs-html='true' data-original-title='选择类型'><option value='1' selected='selected'>数量</option><option value='2'>瓜子</option></select></td><td><input type='number' min='0' value='"
                         + lists[i].num
-                        + "' class='small-input shieldgifts_num' placeholder='num' value='0' data-bs-toggle='tooltip' data-bs-placement='top' title='大于多少(不得小于' data-bs-html='true' data-original-title='大于多少(不得小于)'></td><td><button type='button' class='btn btn-danger btn-sm shieldgift_delete'>删除</button></td></tr>");
+                        + "' class='small-input shieldgifts_num live-save' placeholder='num' value='0' data-bs-toggle='tooltip' data-bs-placement='top' title='大于多少(不得小于' data-bs-html='true' data-original-title='大于多少(不得小于)'></td><td><button type='button' class='btn btn-danger btn-sm shieldgift_delete live-save'>删除</button></td></tr>");
                 $(".shieldgifts_open").eq(i).prop('checked', lists[i].is_open);
                 $(".shieldgifts_status").eq(i).find("option").eq(
                     lists[i].status).prop('selected', true);
@@ -1144,24 +1395,24 @@ const method = {
             for (let i in lists) {
                 $(".replys-ul")
                     .append(
-                        `<li><input type='checkbox' class='reply_open'
+                        `<li><input type='checkbox' class='reply_open live-save'
 					data-bs-toggle='tooltip' data-bs-placement='top' title='是否开启'
 					data-original-title='是否开启'> 
-					<input type='checkbox' class='reply_oc'
+					<input type='checkbox' class='reply_oc live-save'
 						data-bs-toggle='tooltip' data-bs-placement='top' title='是否精确匹配'
 						data-original-title='是否精确匹配'> 
-					<input class='small-input reply_keywords' placeholder='关键字'
+					<input class='small-input reply_keywords live-save' placeholder='关键字'
 					data-bs-toggle='tooltip' data-bs-placement='top' title='不能编辑:多个关键字,以中文逗号隔开'
 					data-bs-html='true' data-original-title='关键字' readonly='readonly' disabled>
-					<input class='small-input reply_shields' placeholder='屏蔽词'
+					<input class='small-input reply_shields live-save' placeholder='屏蔽词'
 					data-bs-toggle='tooltip' data-bs-placement='top' title='不能编辑:多个屏蔽词,以中文逗号隔开'
 					data-bs-html='true' data-original-title='关键字' readonly='readonly' disabled>
-					<input class='big-input reply_rs' placeholder='回复语句'
+					<input class='big-input reply_rs live-save' placeholder='回复语句'
 					data-bs-toggle='tooltip' data-bs-placement='top' title='不能编辑:回复语句,提供%AT%参数,以打印:@提问问题人名称'
 					data-bs-html='true' data-original-title='回复语句' readonly='readonly' disabled>
 					<span class='reply-btns'>
-					<button type='button' class='btn btn-success btn-sm reply_edit'>编辑</button>
-					<button type='button' class='btn btn-danger btn-sm reply_delete'>删除</button>
+					<button type='button' class='btn btn-success btn-sm reply_edit' data-bs-toggle='modal' data-bs-target='#reply-model-edit'>编辑</button>
+					<button type='button' class='btn btn-danger btn-sm reply_delete live-save'>删除</button>
 					</span>
 				</li>`);
 // $("#replys-ul").append(
@@ -1170,11 +1421,11 @@ const method = {
 // +"<input class='small-input reply_keywords' placeholder='关键字'
 // data-bs-toggle='tooltip' data-bs-placement='top' title='不能编辑:多个关键字,以中文逗号隔开'
 // data-original-title='关键字' readonly='readonly' value='"
-// +method.giftStrings_metod(lists[i].keywords)+"' disabled/>"
+// +method.giftStrings_method(lists[i].keywords)+"' disabled/>"
 // +"<input class='small-input reply_shields' placeholder='屏蔽词'
 // data-bs-toggle='tooltip' data-bs-placement='top' title='不能编辑:多个屏蔽词,以中文逗号隔开'
 // data-original-title='屏蔽词' readonly='readonly' value='"
-// +method.giftStrings_metod(lists[i].shields)+"' disabled/>"
+// +method.giftStrings_method(lists[i].shields)+"' disabled/>"
 // +"<input class='big-input reply_rs' placeholder='回复语句' readonly='readonly'
 // value='"
 // +lists[i].reply+"' disabled/>"
@@ -1183,28 +1434,29 @@ const method = {
 // btn-sm reply_delete'>删除</button></span></li>");
                 $(".reply_open").eq(i).prop('checked', lists[i].is_open);
                 $(".reply_oc").eq(i).prop('checked', lists[i].is_accurate);
-                $(".reply_keywords").eq(i).val(method.giftStrings_metod(lists[i].keywords));
-                $(".reply_shields").eq(i).val(method.giftStrings_metod(lists[i].shields));
+                $(".reply_keywords").eq(i).val(method.giftStrings_method(lists[i].keywords));
+                $(".reply_shields").eq(i).val(method.giftStrings_method(lists[i].shields));
                 $(".reply_rs").eq(i).val(lists[i].reply);
             }
         }
     },
-    getIp: function () {
-        let ip = null;
-        $.ajax({
-            url: '../getIp',
-            async: false,
-            cache: false,
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                if (data.code == "200") {
-                    ip = data.result
-                }
-            }
-        });
-        return ip;
-    },
+    //隐私模式版本后移除
+    // getIp: function () {
+    //     let ip = null;
+    //     $.ajax({
+    //         url: '../getIp',
+    //         async: false,
+    //         cache: false,
+    //         type: 'GET',
+    //         dataType: 'json',
+    //         success: function (data) {
+    //             if (data.code == "200") {
+    //                 ip = data.result
+    //             }
+    //         }
+    //     });
+    //     return ip;
+    // },
     delBlock: function (id) {
         $.ajax({
             url: '../del_block?id=' + id,
@@ -1243,7 +1495,7 @@ const method = {
                                 ` <tr class="list-row">
                         <td width="35%" class="list-unit"><p class="user-name-col">` + i.uname + `</p></td>
                         <td width="44%" class="list-unit">` + i.block_end_time + `</td>
-                        <td width="21%" class="list-unit pointer no-select"><span class="del_block_click" data-id="` + i.id + `">撤销</span>
+                        <td width="17%" class="list-unit pointer no-select"><span class="del_block_click" data-id="` + i.id + `">撤销</span>
                         </td>
                     </tr>`
                             );
@@ -1269,6 +1521,9 @@ const method = {
                 }
             }
         });
+    },
+    setExprotWeb: function () {
+        window.open(window.location.origin + "/setExportWeb");
     },
 //导入附件
     importDfFile: function () {
@@ -1330,7 +1585,7 @@ const method = {
         return deferred.promise();
     },
     checkWebInit: function () {
-        let content = {init_edition:false,init_announce:false};
+        let content = {init_edition: false, init_announce: false};
         $.ajax({
             url: '../checkWebInit',
             async: false,
@@ -1406,46 +1661,27 @@ function openSocket(socket, ip, sliceh) {
         };
         // 获得消息事件
         socket.onmessage = function (msg) {
+            // console.log($("#danmu").scrollTop()+":"+$("div[class='danmu-child']:last").offset().top +":"+$("#danmu").height()+":"+$("#danmu")[0].scrollHeight);
             // 发现消息进入 开始处理前端触发逻辑
             let data = JSON.parse(msg.data);
             if (data.cmd === "cmdp") {
-                if ($("#danmu").children().length > 99) {
-                    $("#danmu").children().first().remove();
-                    $("#danmu").children("div:last-child").after(
-                        "<div class='danmu-child'>" + data.result + "</div>");
-                } else {
-                    $("#danmu").append("<div class='danmu-child'>" + data.result + "</div>");
-                }
-                let lastNodeH = $(".danmu-child").eq(-1).height();
-                let lasttNodeH = $(".danmu-child").eq(-2).height();
-                if (Math.abs(lastNodeH - lasttNodeH) > sliceh) {
-                    sliceh = Math.abs(lastNodeH - lasttNodeH);
-                }
-                if ($('#danmu')[0].scrollHeight - $("#danmu").scrollTop() <= (804 + sliceh)) {
-                    let h = $("div[class='danmu-child']:last").height();
-                    let top = $("div[class='danmu-child']:last").offset().top + h + 6;
-                    $("#danmu").scrollTop($("#danmu").scrollTop() + top);
-// $('#danmu').scrollTop($('#danmu')[0].scrollHeight);
-                }
+                $("#danmu").append("<div class='danmu-child'>" + data.result + "</div>");
             } else {
-                if ($("#danmu").children().length > 99) {
-                    $("#danmu").children().first().remove();
-                    $("#danmu").children("div:last-child").after(
-                        danmuku.danmu(data.cmd, data.result));
-                } else {
-                    $("#danmu").append(danmuku.danmu(data.cmd, data.result));
+                $("#danmu").append(danmuku.danmu(data.cmd, data.result));
+
+            }
+            var find_z = $("#danmu").find(".danmu-child-z").length;
+            if (!find_z) {
+                //置底代码
+                var h = $("div[class='danmu-child']:last").height();
+                var top = $("div[class='danmu-child']:last").position().top;
+                var lh = $("#danmu").height() + h;
+                if (lh >= top) {
+                    $("#danmu").scrollTop($("#danmu").prop("scrollHeight"));
                 }
-                let lastNodeH = $(".danmu-child").eq(-1).height();
-                let lasttNodeH = $(".danmu-child").eq(-2).height();
-                if (Math.abs(lastNodeH - lasttNodeH) > sliceh) {
-                    sliceh = Math.abs(lastNodeH - lasttNodeH);
-                }
-                if ($('#danmu')[0].scrollHeight - $("#danmu").scrollTop() <= (804 + sliceh)) {
-                    let h = $("div[class='danmu-child']:last").height();
-                    let top = $("div[class='danmu-child']:last").offset().top + h + 6;
-                    $("#danmu").scrollTop($("#danmu").scrollTop() + top);
-                    // $('#danmu').scrollTop($('#danmu')[0].scrollHeight);
-                }
+            }
+            if ($("#danmu").children().length > 300) {
+                $("#danmu").children().first().remove();
             }
         };
         // 关闭事件

@@ -1,7 +1,21 @@
 package xyz.acproject.danmuji.conf.set;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import xyz.acproject.danmuji.component.ThreadComponent;
+import xyz.acproject.danmuji.conf.PublicDataConf;
+import xyz.acproject.danmuji.conf.base.StartThreadInterface;
+import xyz.acproject.danmuji.conf.base.TimingLiveSetConf;
+
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName AutoReplySetConf
@@ -11,50 +25,55 @@ import java.util.HashSet;
  *
  * @Copyright:2020 blogs.acproject.xyz Inc. All rights reserved.
  */
-public class AutoReplySetConf implements Serializable{
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AutoReplySetConf extends TimingLiveSetConf implements Serializable, StartThreadInterface {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6387301110915854706L;
-	//是否开启
-	private boolean is_open = false;
-	//是否直播有效
-	private boolean is_live_open =false;
-	//间隔时间
-	private short time = 3;
+
+	//人员感谢过滤 0全部 1仅勋章 2仅舰长
+	@JSONField(name = "list_people_shield_status")
+	private short list_people_shield_status = 0;
 	//自动回复子对象集合
 	private HashSet<AutoReplySet> autoReplySets;
-	
-	
-	public AutoReplySetConf() {
-		super();
-		// TODO 自动生成的构造函数存根
+
+
+
+
+	//方法区
+	@Override
+	public void start(ThreadComponent threadComponent){
+		if(StringUtils.isBlank(PublicDataConf.USERCOOKIE)){
+			return;
+		}
+		if (is_live_open()) {
+			if (PublicDataConf.lIVE_STATUS != 1) {
+				threadComponent.closeAutoReplyThread();
+			} else {
+				if (is_open()) {
+					threadComponent.startAutoReplyThread(this);
+				} else {
+					threadComponent.setAutoReplyThread(this);
+					threadComponent.closeAutoReplyThread();
+				}
+			}
+		} else {
+			if (is_open()) {
+				threadComponent.startAutoReplyThread(this);
+			} else {
+				threadComponent.setAutoReplyThread(this);
+				threadComponent.closeAutoReplyThread();
+			}
+		}
 	}
 
-	public boolean isIs_open() {
-		return is_open;
-	}
-	public void setIs_open(boolean is_open) {
-		this.is_open = is_open;
-	}
-	public boolean isIs_live_open() {
-		return is_live_open;
-	}
-	public void setIs_live_open(boolean is_live_open) {
-		this.is_live_open = is_live_open;
-	}
-	public short getTime() {
-		return time;
-	}
-	public void setTime(short time) {
-		this.time = time;
-	}
-	
 	public HashSet<AutoReplySet> getAutoReplySets() {
+		if(autoReplySets!=null) {
+			return autoReplySets.stream().sorted(Comparator.comparing(AutoReplySet::getReply)).collect(Collectors.toCollection(LinkedHashSet::new));
+		}
 		return autoReplySets;
 	}
-	public void setAutoReplySets(HashSet<AutoReplySet> autoReplySets) {
-		this.autoReplySets = autoReplySets;
-	}
-	
 }
